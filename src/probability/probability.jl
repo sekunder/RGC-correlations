@@ -37,8 +37,10 @@ end
 ################################################################################
 
 include("DataDistribution.jl")
+include("BernoulliCodeDistribution.jl")
+include("IsingDistribution.jl")
 
 export show, n_bits, random, expectation_matrix, entropy,
-       DataDistribution
+       DataDistribution, BernoulliCodeDistribution, IsingDistribution
 
 end
