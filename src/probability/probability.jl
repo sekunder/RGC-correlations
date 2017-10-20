@@ -18,8 +18,16 @@ Abstract type used as placeholder.
 abstract AbstractBinaryVectorDistribution
 
 ################################################################################
-#### Miscellaneous functions
+#### Miscellaneous functions and constants
 ################################################################################
+
+"""
+    ISING_SAMPLE_METHOD_THRESHOLD
+
+If N_neurons is greater than this number, switch from exact sampling to Gibbs
+sampling and use MPF instead of LogLikelihood to for the parameters.
+"""
+const ISING_SAMPLE_METHOD_THRESHOLD = 20
 
 function show_metadata(io, P<:AbstractBinaryVectorDistribution)
     if isempty(P.metadata)
@@ -27,6 +35,8 @@ function show_metadata(io, P<:AbstractBinaryVectorDistribution)
     else
         println(io, "Metadata:")
         for (k,v) in P.metadata
+            # TODO It might be useful to store things like the pdf/cdf in metadata
+            # so, think about how to handle that
             println(io, "\t$k : $v")
         end
     end
