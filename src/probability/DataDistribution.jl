@@ -37,14 +37,15 @@ function show(io::IO, P::DataDistribution)
     println(io, "N_neurons: $(P.N)")
     println(io, "Indices:   $(P.I)")
     println(io, "N_samples: $(size(P.X,2))")
-    if isempty(P.metadata)
-        println(io, "No metadata found")
-    else
-        println(io, "Metadata:")
-        for (k,v) in P.metadata
-            println(io, "\t$k : $v")
-        end
-    end
+    show_metadata(P)
+    # if isempty(P.metadata)
+    #     println(io, "No metadata found")
+    # else
+    #     println(io, "Metadata:")
+    #     for (k,v) in P.metadata
+    #         println(io, "\t$k : $v")
+    #     end
+    # end
 end
 
 n_bits(DD::DataDistribution) = DD.N

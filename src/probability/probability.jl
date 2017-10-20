@@ -21,6 +21,17 @@ abstract AbstractBinaryVectorDistribution
 #### Miscellaneous functions
 ################################################################################
 
+function show_metadata(io, P<:AbstractBinaryVectorDistribution)
+    if isempty(P.metadata)
+        println(io, "No metadata found")
+    else
+        println(io, "Metadata:")
+        for (k,v) in P.metadata
+            println(io, "\t$k : $v")
+        end
+    end
+end
+
 ################################################################################
 #### Include definitions of concrete distributions
 ################################################################################
