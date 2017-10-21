@@ -61,7 +61,8 @@ function pdf(ID::IsingDistribution, x::Union{Vector{Bool},BitVector})
         # if n_bits(ID) > ISING_METHOD_THRESHOLD
         #     warn("Calling Ising PDF with $(n_bits(ID)) neurons. This might take a while. (Warning only displays once)", once=true, key=METH_THRESH_WARN_KEY)
         # end
-        idx = 1 + dot([2^i for i = 0:(n_bits(ID) - 1)], x)
+        # idx = 1 + dot([2^i for i = 0:(n_bits(ID) - 1)], x)
+        idx = 1 + _binary_to_int(x)
         if ID.cache[:pdf][idx] == 0.0
             ID.cache[:pdf][idx] = exp(-_E_Ising(ID,x)) / _get_Z(ID)
         end

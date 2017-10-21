@@ -44,6 +44,17 @@ function show_metadata(io::IO, P::AbstractBinaryVectorDistribution)
 end
 
 """
+    binary_to_int(x::Union{BitVector, Vector{Bool}})
+
+Returns the integer that `x` represents. Will use `x.chunks` for `BitVector`s
+and the "dot product method" for `Vector{Bool}`s. Note that this will really
+mess you up if `length(x) > 63`
+
+"""
+_binary_to_int(x::BitVector) = Int(x.chunks[1])
+_binary_to_int(x::Vector{Bool}) = dot([2^i for i = 0:(length(x) - 1)], x)
+
+"""
     get_pdf(P), get_cdf(P)
 
 Internally-used function to return a vector of the PDF of the distribution.
