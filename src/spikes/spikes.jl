@@ -4,35 +4,34 @@ Spikes
 Includes types and methods for handling spike trains.
 """
 module Spikes
-#TODO take some time to write down what I actually need from this module. For
-#instance, raster/histogram are the most apparent, but it might be nice to have
-#some other tools on hand.
-
-#TODO don't get carried away though.
-
-#TODO implement the things that need implementing.
 
 import Base.show
-
-################################################################################
-### Abstract type just in case
-################################################################################
-
-"""
-    AbstractSpikeTrains
-
-Abstract type for spike trains
-"""
-abstract AbstractSpikeTrains
 
 ################################################################################
 #### Miscellaneous functions and constants
 ################################################################################
 
+function show_metadata(io::IO, P::AbstractBinaryVectorDistribution)
+    if isempty(P.metadata)
+        println(io, "No metadata found")
+    else
+        println(io, "Metadata:")
+        for (k,v) in P.metadata
+            # TODO It might be useful to store things like the pdf/cdf in metadata
+            # so, think about how to handle that
+            println(io, "\t$k : $v")
+        end
+    end
+end
+
 ################################################################################
 #### Include appropriate files
 ################################################################################
+include("SpikeTrains.jl")
+include("poissonproc.jl")
 
-export AbstractSpikeTrains
+export show,
+       SpikeTrains, histogram, raster,
+       inhomogeneous_poisson_process
 
 end
