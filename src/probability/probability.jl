@@ -104,15 +104,19 @@ end
 _entropy(P::AbstractBinaryVectorDistribution) = -sum_kbn([p * log(p) for p in filter(x -> 0 < x < 1, get_pdf(P))])
 
 ################################################################################
-#### Include definitions of concrete distributions
+#### Include definitions of concrete distributions, other functions
 ################################################################################
-
 include("DataDistribution.jl")
 include("BernoulliCodeDistribution.jl")
 include("IsingDistribution.jl")
 
+include("fitters.jl")
+include("loglikelihood.jl")
+
 export AbstractBinaryVectorDistribution,
        show, n_bits, random, expectation_matrix, entropy, pdf, get_pdf, get_cdf,
-       DataDistribution, BernoulliCodeDistribution, IsingDistribution
+       DataDistribution, BernoulliCodeDistribution, IsingDistribution,
+       first_order_model, second_order_model, data_model,
+       loglikelihood, MPF_objective
 
 end
