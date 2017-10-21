@@ -25,7 +25,8 @@ function pdf(Pr::BernoulliCodeDistribution, x::Union{Vector{Bool},BitVector})
         # come up if one of the p_i = 0.
         # also, might be worth splitting this back into two cases (Vector{Bool}
         # vs. BitVector)
-        idx = 1 + dot([2^i for i = 0:(n_bits(Pr) - 1)], x)
+        # idx = 1 + dot([2^i for i = 0:(n_bits(Pr) - 1)], x)
+        idx = 1 + _binary_to_int(x)
         if Pr.cache[:pdf][idx] == 0.0
             Pr.cache[:pdf][idx] = prod([x[i] ? Pr.p[i] : (1-Pr.p[i]) for i = 1:length(Pr.p)])
         end
