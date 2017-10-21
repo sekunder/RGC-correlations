@@ -58,7 +58,9 @@ _binary_to_int(x::Vector{Bool}) = dot([2^i for i = 0:(length(x) - 1)], x)
     get_pdf(P), get_cdf(P)
 
 Internally-used function to return a vector of the PDF of the distribution.
-Naive implementation just calls pdf(P,x) over all possible x.
+Naive implementation just calls pdf(P,x) over all possible x. Note that for this
+internal method to work correctly, pdf(P,x) should cache the value in
+P.cache[:pdf] as a side effect.
 """
 function _get_pdf(P::AbstractBinaryVectorDistribution)
     if get(P.metadata, :pdf_computed, false)
@@ -101,13 +103,16 @@ end
 """
     expectation_matrix(P)
 
-Returns a matrix with the expected values of bits and pairs of bits.
+Returns a matrix with the expected values of bits and pairs of bits. Default
+behavior is to call get_pdf(P) and then loop through those values.
+
 """
 function _expectation_matrix(P::AbstractBinaryVectorDistribution)
     em = zeros(n_bits(P), n_bits(P))
+    p = get_pdf(P)
     for k = 0:(2^n_bits(P) - 1)
         x = digits(Bool, k, 2, n_bits(P))
-        em += pdf(P, x) * x * x'
+        em += p[k+1] * x * x'
     end
     return em
 end
