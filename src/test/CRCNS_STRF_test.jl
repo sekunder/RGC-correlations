@@ -17,3 +17,16 @@ println(spikes)
 
 println("Computing spike histograms with bin size = $(frame_time(stim))")
 spike_hist = histogram(spikes, frame_time(stim))
+
+println("Computing STRFs")
+STRFs = compute_STRFs(spike_hist, stim)
+
+using PyPlot
+
+for cell = 1:7
+    fig = figure("Cell $cell, STRF")
+    imshow(STRFs[:,cell,:], aspect="auto", cmap="gray")
+    colorbar()
+    xlabel("time")
+    ylabel("x coordinate")
+end
