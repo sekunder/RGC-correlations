@@ -31,7 +31,7 @@ default_CRCNS_dir = ispath("/Users/sekunder/Documents/MATLAB/crcns_ret-1") ? "/U
 Convenience method returns `1/frametime(S)`. Each concrete subtype of
 AbstractStimulus should implement `frametime`.
 """
-frame_rate(S::AbstractStimulus) = 1.0 / frametime(S)
+frame_rate(S::AbstractStimulus) = 1.0 / frame_time(S)
 
 """
     compute_STRFs(spike_hist, stim; kwargs...)
@@ -62,7 +62,7 @@ function _compute_STRFs(spike_hist::Matrix{Float64}, stim::AbstractStimulus; kwa
     # get the matrix form of the stimulus
     stimulus = matrix_form(stim)
 
-    N_cells, N_bins = size(spike_hist)
+    N_bins, N_cells = size(spike_hist)
     N_bits_per_frame, N_frames = size(stimulus)
     if N_bins != N_frames
         error("_compute_STRFs: mismatched histogram and matrix form (N_bins = $N_bins, N_frames = $N_frames)")
@@ -75,7 +75,7 @@ function _compute_STRFs(spike_hist::Matrix{Float64}, stim::AbstractStimulus; kwa
 
     RFs = zeros(N_bits_per_frame, N_cells, window_length_frames)
     for k = 1:window_length_frames
-        RFs[:,:,window_length_frames - k +1] = stimulus * avg_spikes_per_frame
+        RFs[:, :, window_length_frames - k + 1] = stimulus * avg_spikes_per_frame
         avg_spikes_per_frame = circshift(avg_spikes_per_frame, [-1,0])
     end
     return RFs
@@ -87,6 +87,7 @@ end
 include("CRCNS_Stimulus.jl")
 
 export show, frame_size, frame_time, frame_rate, matrix_form, frame_image,
-       CRCNS_Stimulus
+       CRCNS_Stimulus,
+       compute_STRFs
 
 end

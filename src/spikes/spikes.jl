@@ -8,6 +8,13 @@ module Spikes
 import Base.show
 
 ################################################################################
+#### Include appropriate files
+################################################################################
+include("SpikeTrains.jl")
+include("poissonproc.jl")
+include("CRCNS/CRCNS.jl")
+
+################################################################################
 #### Miscellaneous functions and constants
 ################################################################################
 
@@ -22,14 +29,8 @@ function show_metadata(io::IO, ST::SpikeTrains)
     end
 end
 
-################################################################################
-#### Include appropriate files
-################################################################################
-include("SpikeTrains.jl")
-include("poissonproc.jl")
-
 export show,
-       SpikeTrains, histogram, raster,
+       SpikeTrains, histogram, raster, n_cells,
        inhomogeneous_poisson_process
 
 end
