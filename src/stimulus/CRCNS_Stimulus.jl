@@ -31,7 +31,7 @@ type CRCNS_Stimulus <: AbstractStimulus
 
         px = (Int(vars["stimulus"]["param"][recording_index]["x"]), Int(vars["stimulus"]["param"][recording_index]["y"]))
         d = (Int(vars["stimulus"]["param"][recording_index]["dx"]), Int(vars["stimulus"]["param"][recording_index]["dy"]))
-        N = px ./ d
+        N = map(Int, px ./ d)
         mm_per_px = vars["stimulus"]["pixelsize"][recording_index] / 1000.0
         frame_length_s = vars["stimulus"]["frame"][recording_index]
         onset = vars["stimulus"]["onset"][recording_index]
@@ -67,7 +67,7 @@ function show(io::IO, S::CRCNS_Stimulus)
     println(io, "CRCNS binary whitenoise stimulus")
     println(io, "Used for file $(S.file_name), recording $(S.rec_no)")
     println(io, "Frame size (w,h): $(frame_size(S)) pixels, $(S.mm_per_px .* frame_size(S)) mm")
-    println(io, "Framerate: $(framerate(S)) Hz ($(frametime(S)) s/frame)")
+    println(io, "Framerate: $(frame_rate(S)) Hz ($(frame_time(S)) s/frame)")
 end
 
 """
