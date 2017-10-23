@@ -11,14 +11,12 @@ import Base.show
 #### Miscellaneous functions and constants
 ################################################################################
 
-function show_metadata(io::IO, P::AbstractBinaryVectorDistribution)
-    if isempty(P.metadata)
+function show_metadata(io::IO, ST::SpikeTrains)
+    if isempty(ST.metadata)
         println(io, "No metadata found")
     else
         println(io, "Metadata:")
-        for (k,v) in P.metadata
-            # TODO It might be useful to store things like the pdf/cdf in metadata
-            # so, think about how to handle that
+        for (k,v) in ST.metadata
             println(io, "\t$k : $v")
         end
     end
