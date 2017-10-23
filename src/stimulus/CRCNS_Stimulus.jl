@@ -65,7 +65,7 @@ matrix_form(S::CRCNS_Stimulus) = (-1.0) .^ (!S.bits)
 
 function show(io::IO, S::CRCNS_Stimulus)
     println(io, "CRCNS binary whitenoise stimulus")
-    println(io, "Used for file $(S.file_name), recording $(S.rec_no)")
+    println(io, "Used for file $(S.file_name), recording $(S.rec_no) (index $(S.rec_idx))")
     println(io, "Frame size (w,h): $(frame_size(S)) pixels, $(S.mm_per_px .* frame_size(S)) mm")
     println(io, "Framerate: $(frame_rate(S)) Hz ($(frame_time(S)) s/frame)")
 end

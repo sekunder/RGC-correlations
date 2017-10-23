@@ -87,6 +87,7 @@ end
 include("CRCNS_Stimulus.jl")
 
 export show, frame_size, frame_time, frame_rate, matrix_form, frame_image,
-       CRCNS_Stimulus
+       CRCNS_Stimulus,
+       compute_STRFs
 
 end
