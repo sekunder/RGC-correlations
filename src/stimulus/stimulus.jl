@@ -62,7 +62,7 @@ function _compute_STRFs(spike_hist::Matrix{Float64}, stim::AbstractStimulus; kwa
     # get the matrix form of the stimulus
     stimulus = matrix_form(stim)
 
-    N_cells, N_bins = size(spike_hist)
+    N_bins, N_cells = size(spike_hist)
     N_bits_per_frame, N_frames = size(stimulus)
     if N_bins != N_frames
         error("_compute_STRFs: mismatched histogram and matrix form (N_bins = $N_bins, N_frames = $N_frames)")
@@ -87,6 +87,7 @@ end
 include("CRCNS_Stimulus.jl")
 
 export show, frame_size, frame_time, frame_rate, matrix_form, frame_image,
-       CRCNS_Stimulus
+       CRCNS_Stimulus,
+       compute_STRFs
 
 end

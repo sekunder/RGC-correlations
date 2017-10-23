@@ -12,6 +12,7 @@ import Base.show
 ################################################################################
 include("SpikeTrains.jl")
 include("poissonproc.jl")
+include("CRCNS/CRCNS.jl")
 
 ################################################################################
 #### Miscellaneous functions and constants
@@ -29,7 +30,7 @@ function show_metadata(io::IO, ST::SpikeTrains)
 end
 
 export show,
-       SpikeTrains, histogram, raster,
+       SpikeTrains, histogram, raster, n_cells,
        inhomogeneous_poisson_process
 
 end
