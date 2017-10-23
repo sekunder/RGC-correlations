@@ -88,3 +88,5 @@ function frame_image(S::CRCNS_Stimulus, idx::Int)
 end
 frame_image(S::CRCNS_Stimulus, t::Float64, relative_time::Bool=false) = frame_image(S, ceil(Int, (relative_time ? t - S.onset : t)/frame_time(S)))
 reshape_frame_vec(S::CRCNS_Stimulus, fv) = reshape(fv, reverse(S.N))
+
+compute_STRFs(spike_hist::Matrix{Float64}, S::CRCNS_Stimulus; kwargs...) = _compute_STRFs(spike_hist, S; kwargs...)
