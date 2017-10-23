@@ -13,8 +13,9 @@ function CRCNS_get_spikes_from_file(filename, rec_idx::Int)
     vars = matread(filename)
 
     spike_trains = vars["spikes"][:,rec_idx]
-    return SpikeTrains(spike_trains;
-        stim_start=vars["stimulus"]["onset"][rec_idx],
-        stim_finish=vars["stimulus"]["onset"][rec_idx] + vars["stimulus"]["frame"][rec_idx] * vars["stimulus"]["Nframes"][rec_idx],
+    spikes = [st - vars["stimulus"]["onset"][rec_idx] for st in spike_trains]
+    return SpikeTrains(spikes;
+        stim_start=0.0,
+        stim_finish=vars["stimulus"]["frame"][rec_idx] * vars["stimulus"]["Nframes"][rec_idx],
         filename=filename)
 end
