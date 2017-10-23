@@ -12,6 +12,7 @@ import Base.show
 ################################################################################
 include("SpikeTrains.jl")
 include("poissonproc.jl")
+include("CRCNS/CRCNS.jl")
 
 ################################################################################
 #### Miscellaneous functions and constants
