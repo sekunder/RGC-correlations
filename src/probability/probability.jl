@@ -36,8 +36,6 @@ function show_metadata(io::IO, P::AbstractBinaryVectorDistribution)
     else
         println(io, "Metadata:")
         for (k,v) in P.metadata
-            # TODO It might be useful to store things like the pdf/cdf in metadata
-            # so, think about how to handle that
             println(io, "\t$k : $v")
         end
     end

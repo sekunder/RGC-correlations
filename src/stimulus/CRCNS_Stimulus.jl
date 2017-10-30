@@ -46,7 +46,6 @@ function CRCNS_Stimulus(mat_file::String, recording_index::Int; verbose=false, k
 
     # create some appropriate metadata
     meta = Dict()
-    #TODO set some useful metadata
     meta[:file] = joinpath(floc,fname)
     meta[:recording] = "Recording $(vars["datainfo"]["RecNo"][recording_index]) (recording index $(recording_index))"
     meta[:source] = "CRCNS Binary Whitenoise stimulus"

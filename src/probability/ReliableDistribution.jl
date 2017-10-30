@@ -13,6 +13,6 @@ type ReliableInformationDistribution
     cache::Dict{Any,Any}
 
     function ReliableInformationDistribution(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); kwargs)
-        # TODO implement this if it seems necessary
+        # MAYBEDO implement this if it seems necessary
     end
 end

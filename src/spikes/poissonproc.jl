@@ -36,6 +36,6 @@ function inhomogeneous_poisson_process(lam::Vector{Float64}, dt::Float64, Tmax::
   return times
 end
 
-# TODO maybe implement a version of this function that returns a proper
+# MAYBEDO maybe implement a version of this function that returns a proper
 # SpikeTrains object. Probably not necessary, but keeping this flag here just in
 # case.
