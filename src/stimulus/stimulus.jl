@@ -22,6 +22,7 @@ abstract AbstractStimulus
 ################################################################################
 #### Miscellaneous functions and constants
 ################################################################################
+include("../util/metadata.jl")
 
 default_CRCNS_dir = ispath("/Users/sekunder/Documents/MATLAB/crcns_ret-1") ? "/Users/sekunder/Documents/MATLAB/crcns_ret-1" : "/data1/homes/abk170/crcns_ret-1"
 
@@ -37,7 +38,7 @@ frame_rate(S::AbstractStimulus) = 1.0 / frame_time(S)
     compute_STRFs(spike_hist, stim; kwargs...)
 
 Generic implementation of STRF computation. Uses `matrix_form(stim)` to perform
-computations.
+computations. Returns a matrix.
 
 Life will be easy if we assume that the bins of the histogram are 1-to-1 with
 the frames of the stimulus. So, implement concrete subtypes of
@@ -47,10 +48,6 @@ For keyword arguments: specifying `window_length_frames` overrides any value
 computed from `window_length_s`
 """
 function _compute_STRFs(spike_hist::Matrix{Float64}, stim::AbstractStimulus; kwargs...)
-    # TODO implement this. The idea is that matrix_form will return a matrix
-    # where each column is one frame of the stimulus, so this function should
-    # generically work on any stimulus with matrix_form implemented.
-
     # preprocessing stuff: get the window length
     dkwargs = Dict(kwargs)
     window_length_s = get(dkwargs, :window_length_s, 0.5)
@@ -84,10 +81,11 @@ end
 ################################################################################
 #### Include definitions of concrete types
 ################################################################################
+include("GrayScaleStimulus.jl")
 include("CRCNS_Stimulus.jl")
 
 export show, frame_size, frame_time, frame_rate, matrix_form, frame_image,
-       CRCNS_Stimulus,
+       GrayScaleStimulus, CRCNS_Stimulus,
        compute_STRFs
 
 end
