@@ -25,7 +25,8 @@ using PyPlot
 
 for cell = 1:7
     fig = figure("Cell $cell, STRF")
-    imshow(STRFs[:,cell,:], aspect="auto", cmap="gray")
+    # imshow(STRFs[:,cell,:], aspect="auto", cmap="gray")
+    imshow(matrix_form(STRFs[cell]), aspect="auto", cmap="gray")
     colorbar()
     xlabel("time")
     ylabel("x coordinate")
