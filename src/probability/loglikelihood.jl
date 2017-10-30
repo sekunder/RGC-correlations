@@ -25,13 +25,14 @@ function loglikelihood(X::Union{Matrix{Bool}, BitMatrix}, Jtilde::Vector, grad::
     # provide a speed up here. In fact, I should change the _expectation_matrix
     # function so that it invokes get_pdf, so that BCD and ID will cache all the
     # values. Then things should be speedy?
-    if length(grad > 0)
+    if length(grad) > 0
         # performing this computation first, if it's necessary, results in all
         # the pdf values being cached.
         # mu_X = X * X' / N_samples
         mu_P = expectation_matrix(P)
         grad[:] = -0.5 * (mu_P - mu_X)[:]
         grad[1:(N_neurons+1):end] = diag(mu_P - mu_X)
+
     end
     return sum_kbn([log(pdf(P, X[:,k])) for k = 1:N_samples]) / N_samples
 end
