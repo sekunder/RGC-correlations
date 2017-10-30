@@ -10,7 +10,7 @@ bit i.
 """
 function first_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); kwargs...)
     mu = sum(X[I,:],2) / length(I)
-    return BernoulliCodeDistribution(mu, I; autocmment="first_order_model", kwargs...)
+    return BernoulliCodeDistribution(mu, I; autocomment="first_order_model", kwargs...)
 end
 
 """
