@@ -39,8 +39,10 @@ end
 Copies the measurements from `existing_GrayScaleStimulus` into a new `GrayScaleStimulus`
 object, using the new pixel values. Overwrites old metadata with kwargs.
 """
-function GrayScaleStimulus(values::Union{BitMatrix,Matrix{Float64}}, S::GrayScaleStimulus; kwargs...)
-    return GrayScaleStimulus(values, S.N, S.px, S.d, S.mm_per_px, S.frame_length_s, S.frame_rate, S.onset, S.zerotonegative, Dict(kwargs))
+function GrayScaleStimulus(values::Union{BitMatrix,Matrix{Float64}}, S::GrayScaleStimulus;
+    onset=S.onset, zerotonegative=S.zerotonegative, kwargs...)
+
+    return GrayScaleStimulus(values, S.N, S.px, S.d, S.mm_per_px, S.frame_length_s, S.frame_rate, onset, zerotonegative, Dict(kwargs))
 end
 
 function show(io::IO, S::GrayScaleStimulus)
@@ -78,4 +80,15 @@ function frame_image(S::GrayScaleStimulus, idx::Int)
 end
 frame_image(S::GrayScaleStimulus, t::Float64, relative_time::Bool=false) = frame_image(S, ceil(Int, (relative_time ? t - S.onset : t)/frame_time(S)))
 
-compute_STRFs(spike_hist::Matrix{Float64}, S::GrayScaleStimulus; kwargs...) = _compute_STRFs(spike_hist, S; kwargs...)
+"""
+    compute_STRFs(spike_hist, S; kwargs...)
+
+Returns an array of `GrayScaleStimulus` objects, one for each neuron.
+"""
+function compute_STRFs(spike_hist::Matrix{Float64}, S::GrayScaleStimulus; kwargs...)
+    RFs = _compute_STRFs(spike_hist, S; kwargs...)
+    # let's pop kwargs that are related to computing the RFs
+    dkwargs = Dict(kwargs)
+    window_length_s = pop!(dkwargs, :window_length_s, 0.5)
+    return [GrayScaleStimulus(RFs[:,i,:], S; onset=-window_length_s, zerotonegative=false, dkwargs...) for i = 1:size(RFs,2)]
+end
