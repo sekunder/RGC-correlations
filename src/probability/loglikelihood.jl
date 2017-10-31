@@ -1,11 +1,30 @@
 
 """
-    loglikelihood(X, P)
+    likelihood(X, P, normalized=true)
 
-Computes the log likelihood of `X` given distribution `P`
+Computes the likelihood of `X` given distribution `P`
 """
-function loglikelihood(X::Union{Matrix{Bool},BitMatrix}, P::AbstractBinaryVectorDistribution; kwargs...)
-    sum_kbn([log(pdf(P,X[:,k])) for k = 1:size(X,2)]) / size(X,2)
+function likelihood(X::Union{Matrix{Bool},BitMatrix}, P::AbstractBinaryVectorDistribution, normalized=true)
+    Px = [pdf(P, X[:,k]) for k = 1:size(X,2)]
+    if normalized
+        Px = Px .^ (1 / size(X,2))
+    end
+    return prod(Px)
+end
+
+
+"""
+    loglikelihood(X, P, normalized=true)
+
+Computes the log likelihood of `X` given distribution `P`. Returns `0.0` if `P`
+assigns probability 0 to any column of `X`
+"""
+function loglikelihood(X::Union{Matrix{Bool},BitMatrix}, P::AbstractBinaryVectorDistribution, normalized=true)
+    Px = [pdf(P, X[:,k]) for k = 1:size(X,2)]
+    if any(Px .== 0.0)
+        return 0.0
+    end
+    return sum_kbn(map(log,Px)) / (normalized ? size(X,2) : 1)
 end
 
 """
