@@ -27,7 +27,7 @@ function second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); ver
 
     # let's try only writing one method, since the only difference is the
     # function and max/min.
-    opt_Ising = Opt(:LD_LBFGS, N_neurons^2)
+    opt_Ising = Opt(pop!(dkwargs,:algorithm,:LD_LBFGS), N_neurons^2)
     # for some reaosn I'm getting "F_X not defined". So, I'm going to try
     # definind F_X as loglikelihood no matter what, then override F_X with MPF
     # if necessary. I'll set a flag for which function I used, and then set
@@ -35,7 +35,7 @@ function second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); ver
     mu = Xselected * Xselected' / N_samples
     F_X(J,g) = loglikelihood(Xselected, J, g; mu_X=mu)
     fun = "loglikelihood"
-    if N_neurons > ISING_METHOD_THRESHOLD || get(dkwargs, :force_MPF, false)
+    if N_neurons > ISING_METHOD_THRESHOLD || pop!(dkwargs, :force_MPF, false)
         F_X(J,g) = MPF_objective(Xselected, J, g)
         fun = "MPF"
     end
@@ -61,17 +61,36 @@ function second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); ver
     #     min_objective!(opt_Ising, F_X)
     #     fun = "MPF"
     # end
-    ftol_rel!(opt_Ising, 1e-10)
-    ftol_abs!(opt_Ising, 1e-10)
-    xtol_rel!(opt_Ising, 1e-10)
-    xtol_abs!(opt_Ising, 1e-10)
-    vector_storage!(opt_Ising, N_neurons)
+    if haskey(dkwargs, :ftol_rel)
+        ftol_rel!(opt_Ising, pop!(dkwargs,:ftol_rel))
+    end
+    if haskey(dkwargs, :ftol_abs)
+        ftol_abs!(opt_Ising, pop!(dkwargs,:ftol_abs))
+    end
+    if haskey(dkwargs, :xtol_rel)
+        xtol_rel!(opt_Ising, pop!(dkwargs,:xtol_rel))
+    end
+    if haskey(dkwargs, :xtol_abs)
+        xtol_abs!(opt_Ising, pop!(dkwargs,:xtol_abs))
+    end
+    if haskey(dkwargs, :vector_storage)
+        vector_storage!(opt_Ising, pop!(dkwargs,:vector_storage))
+    end
+    if haskey(dkwargs, :maxeval)
+        maxeval!(opt_Ising, pop!(dkwargs,:maxeval))
+    end
     if verbose
         println("second_order_model: running optimization")
+        println("\talgorithm: $(algorithm(opt_Ising))")
+        println("\tftol (rel/abs): $(ftol_rel(opt_Ising)) / $(ftol_abs(opt_Ising))")
+        println("\txtol (rel/|abs|): $(xtol_rel(opt_Ising)) / $(norm(xtol_abs(opt_Ising)))")
+        println("\tvect. stor.: $(vector_storage(opt_Ising))")
+        println("\tmax evals: $(maxeval(opt_Ising))")
     end
     (optVal, J_opt, optReturn) = optimize(opt_Ising, Jseed[:])
+    final_val = F_X(J_opt, [])
     J_opt = reshape(J_opt, N_neurons, N_neurons)
-    return IsingDistribution(J_opt, I; autocomment="second_order_model (using $fun)", opt_val=optVal, opt_ret=optReturn)
+    return IsingDistribution(J_opt, I; autocomment="second_order_model (using $fun, final value $final_val)", opt_val=optVal, opt_ret=optReturn, dkwargs...)
 end
 
 """

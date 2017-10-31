@@ -31,7 +31,7 @@ function loglikelihood(X::Union{Matrix{Bool}, BitMatrix}, Jtilde::Vector, grad::
         # mu_X = X * X' / N_samples
         mu_P = expectation_matrix(P)
         grad[:] = -0.5 * (mu_P - mu_X)[:]
-        grad[1:(N_neurons+1):end] = diag(mu_P - mu_X)
+        grad[1:(N_neurons+1):end] = diag(mu_P - mu_X)[:]
 
     end
     return sum_kbn([log(pdf(P, X[:,k])) for k = 1:N_samples]) / N_samples

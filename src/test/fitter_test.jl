@@ -35,18 +35,19 @@ toc()
 println(P_1)
 
 println("Second order model (i.e. Ising model)")
-println("Don't forget, I commented out a line about vector storage.")
-# tic()
-# P_2 = second_order_model(X, verbose=true, force_MPF=true)
-# toc()
-# println(P_2)
-F_X(J,g) = loglikelihood(X, J, g; mu_X =X * X' / N_samples)
+tic()
+P_2 = second_order_model(X, verbose=true, algorithm=:LD_MMA, maxeval=20) #algorithm=:LD_MMA,
+toc()
+println(P_2)
+
+# MANUAL GRADIENT DESCENT
 N_neurons, N_samples = size(X)
+F_X(J,g) = loglikelihood(X, J, g; mu_X =X * X' / N_samples)
 
 begin
-    n_attempts=1000
+    n_attempts=100
     print_attempts=10
-    lr = 4.0; whoopscount=0;
+    lr = 10.0; whoopscount=0;
     println("Gonna just do gradient descent for $n_attempts steps with a learning rate")
     Jseed = rand(N_neurons,N_neurons); Jseed = (Jseed + Jseed') / (2 * N_neurons)
     J_0 = Jseed[:]
@@ -60,16 +61,18 @@ begin
     push!(F_vals, F_X(J_0, g))
     push!(g_vals, g)
     max_F = F_vals[1]; max_F_idx = 1;
-    attempt = 2
+    attempt = 1
     println("Step\tF_X(J,θ)\tdF\t|gradient|\tlr")
+    println("$attempt\t$(F_vals[attempt])\t$(F_vals[attempt])\t$(sqrt(dot(g,g)))\t$lr")
+    attempt += 1
     while attempt <= n_attempts
         push!(J_vals, J_vals[attempt-1] + lr * g_vals[attempt-1])
         push!(F_vals, F_X(J_vals[attempt], g))
         push!(g_vals, g)
         if mod(attempt, print_attempts) == 0
-            println("$attempt\t$(F_vals[attempt])\t$(F_vals[attempt]-F_vals[attempt-1])\t$(sqrt(dot(g,g)))\t$lr")
+            println("$attempt\t$(F_vals[attempt])\t$(F_vals[attempt]-F_vals[attempt-1])\t$(lr * sqrt(dot(g,g)))\t$lr")
         end
-        if F_vals[attempt] < F_vals[attempt]
+        if F_vals[attempt] < F_vals[attempt-1]
             whoopscount += 1
             # lr = 2.0 - exp(-whoopscount)
             lr /= 2.0
