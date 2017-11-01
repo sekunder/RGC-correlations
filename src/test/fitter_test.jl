@@ -34,13 +34,19 @@ P_1 = first_order_model(X)
 toc()
 println(P_1)
 
-println("Second order model (i.e. Ising model)")
+println("Second order model (i.e. Ising model). Three different fitters: gradient_optimizer, LD_LBFGS, LD_MMA")
 tic()
 # P_2 = second_order_model(X, verbose=true, algorithm=:LD_MMA, maxeval=20) #algorithm=:LD_MMA,
-P_2 = second_order_model(X; verbose=true, more_verbose=true)
+P_2_naive = second_order_model(X; verbose=true, more_verbose=true, algorithm=:naive)
 # (F_opt, J_opt, stop, Jseed, mu, F_used) = second_order_model(X; verbose=true, more_verbose=true, print_eval=10, maxeval=100)
 toc()
-println(P_2)
+println(P_2_naive)
+
+tic()
+P_2_LBFGS = second_order_model(X; verbose=true, algorithm=:LD_LBFGS)
+toc()
+println(P_2_LBFGS)
+
 
 # # MANUAL GRADIENT DESCENT
 # N_neurons, N_samples = size(X)
