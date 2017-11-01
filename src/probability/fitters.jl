@@ -1,5 +1,6 @@
 
 using NLopt
+include("../util/optimizers.jl")
 
 """
     first_order_model(X, I; kwargs...)
