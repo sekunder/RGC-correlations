@@ -20,20 +20,19 @@ end
 Returns an `IsingDistribution` which is fit to the pairwise correlations in `X`.
 
 keyword argument `algorithm` sets the algorithm:
+ * `algorithm = :LD_LBFGS` Default is to use LDLBFGS algorithm in NLopt
  * `algorithm = :naive` uses the function `gradient_optimizer` in `optimizers.jl`
- * `algorithm = :LD_LBFGS` uses the LBFGS algorithm as described in the `NLopt` package
- * `algorithm = :LD_MMA` uses the MMA algorithm as described in the `NLopt` package
+ * `algorithm = :LD_MMA` uses the MMA algorithm as described in the `NLopt` package. Don't use this one it's hella slow.
 """
-function second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); verbose=false, kwargs...)
-    dkwargs = Dict(kwargs)
-    if get(dkwargs, :algorithm, :naive) == :naive
-        delete!(dkwargs, :algorithm)
-        return _Naive_second_order_model(X, I; verbose=verbose, dkwargs...)
+function second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1);
+    verbose=0, algorithm=:LD_LBFGS, kwargs...)
+
+    if algorithm == :naive
+        return _Naive_second_order_model(X, I; verbose=verbose, kwargs...)
     else
-        return _NLopt_second_order_model(X, I; verbose=verbose, dkwargs...)
-    end
+        return _NLopt_second_order_model(X, I; verbose=(verbose>0), algorithm=algorithm, kwargs...)
 end
-function _Naive_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); verbose=false, kwargs...)
+function _Naive_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); verbose=0, kwargs...)
     dkwargs = Dict(kwargs)
     Xselected = X[I,:]
     N_neurons,N_samples = size(Xselected)
@@ -49,14 +48,14 @@ function _Naive_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
         objective = :min
     end
 
-    if verbose
+    if verbose > 0
         println("second_order_model[gradient_optimizer]: setting $objective objective $fun")
     end
-    verbosity = verbose + pop!(dkwargs, :more_verbose, false)
+    # verbosity = verbose + pop!(dkwargs, :more_verbose, false)
     if fun == "loglikelihood"
-        (F_opt, J_opt, stop) = gradient_optimizer(L_X, Jseed[:]; objective=objective, verbose=verbosity, dkwargs...)
+        (F_opt, J_opt, stop) = gradient_optimizer(L_X, Jseed[:]; objective=objective, verbose=verbose, dkwargs...)
     else
-        (F_opt, J_opt, stop) = gradient_optimizer(K_X, Jseed[:]; objective=objective, verbose=verbosity, dkwargs...)
+        (F_opt, J_opt, stop) = gradient_optimizer(K_X, Jseed[:]; objective=objective, verbose=verbose, dkwargs...)
     end
     J_opt = reshape(J_opt, N_neurons, N_neurons)
     return IsingDistribution(J_opt, I; autocomment="second_order_model[gradient_optimizer|$fun]", opt_val=F_opt, opt_ret=stop, dkwargs...)

@@ -77,7 +77,7 @@ function gradient_optimizer(obj_fun, x0; objective=:min,
         dF_cur = F_cur - F_prev
         dx_next = lr * norm(g_cur) # size of next step
 
-        # perform updates as necessary
+        # update local extremum
         if F_cur * obj_sign > F_opt * obj_sign
             # if we're more extreme than current best, update
             g_opt[:] = g_cur[:]
@@ -85,14 +85,16 @@ function gradient_optimizer(obj_fun, x0; objective=:min,
             F_opt = F_cur
             eval_opt = eval
         end
-        if adjust_lr && (dF_cur * obj_sign < 0)
-            whoopscount += 1
-            lr /= 2
-        end
 
         # print if necessary
         if verbose > 1 && mod(eval, print_eval) == 0
             println("\t$eval\t$F_cur\t$dF_cur\t$dx_next\t$lr$(eval_opt == eval ? " *" : "")")
+        end
+
+        # update the learning rate if we overshot
+        if adjust_lr && (dF_cur * obj_sign < 0)
+            whoopscount += 1
+            lr /= 2
         end
 
         # increment counter; eval is now the index of the next step.
@@ -125,7 +127,7 @@ function gradient_optimizer(obj_fun, x0; objective=:min,
         println("gradient_optimizer: optimal value found: $F_opt")
     end
     if verbose > 1
-        println("gradient_optimizer: opt. value reached at evaluation $eval_opt / $eval")
+        println("gradient_optimizer: opt. value reached at evaluation $eval_opt / $maxeval")
         println("gradient_optimizer: Learning rate adjusted $whoopscount time$(whoopscount != 1 ? "s" : "")")
         println("gradient_optimizer: final learning rate: $lr")
     end
