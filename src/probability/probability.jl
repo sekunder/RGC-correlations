@@ -110,7 +110,7 @@ function _expectation_matrix(P::AbstractBinaryVectorDistribution)
     p = get_pdf(P)
     for k = 0:(2^n_bits(P) - 1)
         x = digits(Bool, k, 2, n_bits(P))
-        em += p[k+1] * x * x'
+        em += p[k+1] * (x * x')
     end
     return em
 end
