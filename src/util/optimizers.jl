@@ -29,10 +29,18 @@ function gradient_optimizer(F, x0; objective=:min,
     maxeval=1000, xtol_abs = 0.0, xtol_rel = 0.0, ftol_abs = 0.0, ftol_rel = 0.0,
     kwargs...)
 
+    # bookkeeping set up
     dkwargs = Dict(kwargs)
     obj_sign = (objective == :min ? -1 : 1)
+    stopping_criteria = [:maxeval_reached,
+                        :opt_reached,
+                        :xtol_abs_reached,
+                        :xtol_rel_reached,
+                        :ftol_abs_reached,
+                        :ftol_rel_reached]
+    stop = falses(stopping_criteria)
 
-    # set up
+    # gradient algorithm set up
     g = zeros(x0); g_prev = zeros(x0)
     x_prev = zeros(x0); x_prev[:] = x0[:]
     x = zeros(x0); dx_cur = 0
@@ -43,11 +51,11 @@ function gradient_optimizer(F, x0; objective=:min,
     x_opt[:] = zeros(x0); g_opt = zeros(x0)
     eval = 0
     whoopscount = 0
-    stop = 0
+
     if verbose > 1
         println("Eval\tF(x)\t\tdF\t|gradient|\tlr")
     end
-    while stop == 0
+    while stop.chunks[1] == 0
         # get current value of x from previous x and gradient
         x[:] = x_prev[:] + obj_sign * lr * g_prev[:]
         # evaluate at new x
@@ -59,7 +67,8 @@ function gradient_optimizer(F, x0; objective=:min,
         end
 
         # perform updates as necessary
-        if (F_cur - F_opt) * obj_sign > 0
+        # if (F_cur - F_opt) * obj_sign > 0
+        if F_cur * obj_sign < F_opt * obj_sign
             # if we're more extreme than current best, update
             F_opt = F_cur
             eval_opt = eval
@@ -84,14 +93,22 @@ function gradient_optimizer(F, x0; objective=:min,
         # 5 ftol_abs reached (dF_cur < ftol_abs)
         # 6 ftol_rel reached (|dF_cur / F_cur| < ftol_rel )
         Fstep_rel = F_cur == 0 ? Inf : abs(dF_cur / F_cur)
-        stop = stop | (((eval >= maxeval) << 1)
-                        | ((dF_cur == 0.0) << 2)
-                        | ((dx_next < xtol_abs) << 3)
-                        | ((dx_next / norm(x) < xtol_rel) << 4)
-                        | ((dF_cur < ftol_abs) << 5)
-                        | ((Fstep_rel < ftol_rel) << 6) )
+        xstep_rel = norm(x) == 0 ? Inf : abs(dx_next / norm(x))
+        stop = stop | [eval >= maxeval,
+                        dF_cur == 0.0,
+                        dx_next < xtol_abs,
+                        xtep_rel < xtol_rel,
+                        dF_cur < ftol_abs,
+                        Fstep_rel < ftol_rel]
+    end
+    if verbose > 0
+        # TODO print out information about the optimal value, that sort of thing
+        println("gradient_optimizer: Stopping criteria reached: $(stopping_criteria[stop])")
+        println("gradient_optimizer: optimal value found: $F_opt")
+        println("gradient_optimizer: opt. value reached at evaluation $eval_opt")
     end
     if verbose > 1
-        # TODO print out information about the optimal value, that sort of thing
+        println("gradient_optimizer: Learning rate adjusted $whoopscount time$(whoopscount > 1 ? "s" : "")")
+        println("gradient_optimizer: final learning rate: $lr")
     end
 end
