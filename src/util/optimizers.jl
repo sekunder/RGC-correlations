@@ -77,6 +77,11 @@ function gradient_optimizer(obj_fun, x0; objective=:min,
         dF_cur = F_cur - F_prev
         dx_next = lr * norm(g_cur) # size of next step
 
+        # print if necessary
+        if verbose > 1 && mod(eval, print_eval) == 0
+            println("\t$eval\t$F_cur\t$dF_cur\t$dx_next\t$lr$(eval_opt == eval ? " *" : "")")
+        end
+
         # perform updates as necessary
         if F_cur * obj_sign > F_opt * obj_sign
             # if we're more extreme than current best, update
@@ -88,11 +93,6 @@ function gradient_optimizer(obj_fun, x0; objective=:min,
         if adjust_lr && (dF_cur * obj_sign < 0)
             whoopscount += 1
             lr /= 2
-        end
-
-        # print if necessary
-        if verbose > 1 && mod(eval, print_eval) == 0
-            println("\t$eval\t$F_cur\t$dF_cur\t$dx_next\t$lr$(eval_opt == eval ? " *" : "")")
         end
 
         # increment counter; eval is now the index of the next step.
