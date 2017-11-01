@@ -36,9 +36,11 @@ println(P_1)
 
 println("Second order model (i.e. Ising model)")
 tic()
-P_2 = second_order_model(X, verbose=true, algorithm=:LD_MMA, maxeval=20) #algorithm=:LD_MMA,
+# P_2 = second_order_model(X, verbose=true, algorithm=:LD_MMA, maxeval=20) #algorithm=:LD_MMA,
+# P_2 = second_order_model(X; verbose=true, more_verbose=true, print_eval=1, maxeval=2)
+(F_opt, J_opt, stop, Jseed, mu, F_used) = second_order_model(X; verbose=true, more_verbose=true, print_eval=1, maxeval=2)
 toc()
-println(P_2)
+# println(P_2)
 
 # MANUAL GRADIENT DESCENT
 N_neurons, N_samples = size(X)
@@ -65,6 +67,7 @@ begin
     println("Step\tF_X(J,θ)\tdF\t|gradient|\tlr")
     println("$attempt\t$(F_vals[attempt])\t$(F_vals[attempt])\t$(sqrt(dot(g,g)))\t$lr")
     attempt += 1
+    tic()
     while attempt <= n_attempts
         push!(J_vals, J_vals[attempt-1] + lr * g_vals[attempt-1])
         push!(F_vals, F_X(J_vals[attempt], g))
@@ -79,4 +82,5 @@ begin
         end
         attempt += 1
     end
+    toc()
 end
