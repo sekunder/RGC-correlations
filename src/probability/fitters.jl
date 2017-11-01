@@ -38,11 +38,11 @@ function _Naive_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
     Jseed = rand(N_neurons,N_neurons); Jseed = (Jseed + Jseed') / (2 * N_neurons)
     mu = Xselected * Xselected' / N_samples
     println("mu is a $(typeof(mu)), size(mu) = $(size(mu))") #TODO debugging
-    F_X(J,g) = loglikelihood(Xselected, J, g; mu_X = mu)
+    L_X(J,g) = loglikelihood(Xselected, J, g; mu_X = mu) #TODO debugging
     fun = "loglikelihood"
     objective = :max
     if N_neurons > ISING_METHOD_THRESHOLD || pop!(dkwargs, :force_MPF, false)
-        F_X(J,g) = MPF_objective(Xselected, J, g)
+        K_X(J,g) = MPF_objective(Xselected, J, g) #TODO debugging
         fun = "MPF"
         objective = :min
     end
@@ -51,11 +51,16 @@ function _Naive_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
         println("second_order_model[gradient_optimizer]: setting $objective objective $fun")
     end
     verbosity = verbose + pop!(dkwargs, :more_verbose, false)
-    (F_opt, J_opt, stop) = gradient_optimizer(F_X, Jseed[:]; objective=objective, verbose=verbosity, dkwargs...)
-    final_val = F_X(J_opt, [])
+    # (F_opt, J_opt, stop) = gradient_optimizer(F_X, Jseed[:]; objective=objective, verbose=verbosity, dkwargs...)
+    # final_val = F_X(J_opt, [])  #TODO debugging
+    if fun == "loglikelihood"
+        (F_opt, J_opt, stop) = gradient_optimizer(L_X, Jseed[:]; objective=objective, verbose=verbosity, dkwargs...)
+    else
+        (F_opt, J_opt, stop) = gradient_optimizer(K_X, Jseed[:]; objective=objective, verbose=verbosity, dkwargs...)
+    end
     J_opt = reshape(J_opt, N_neurons, N_neurons)
-    # return IsingDistribution(J_opt, I; autocomment="second_order_mode[gradient_optimizer] (using $fun, final value $final_val)", opt_val=optVal, opt_ret=optReturn, dkwargs...) #TODO debugging
-    return (F_opt, J_opt, stop, Jseed, mu, F_X)
+    return IsingDistribution(J_opt, I; autocomment="second_order_mode[gradient_optimizer|$fun]", opt_val=F_opt, opt_ret=stop, dkwargs...)
+    # return (F_opt, J_opt, stop, Jseed, mu, (fun == "loglikelihood" ? L_X : K_X))
 end
 function _NLopt_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); verbose=false, kwargs...)
     dkwargs = Dict(kwargs)
@@ -68,11 +73,13 @@ function _NLopt_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
     # definind F_X as loglikelihood no matter what, then override F_X with MPF
     # if necessary. I'll set a flag for which function I used, and then set
     # max_objective or min_objective as necessary.
+    # Update: turns out maybe Julia was setting F_X no matter whether it
+    # actually entered the branch? Or something.
     mu = Xselected * Xselected' / N_samples
-    F_X(J,g) = loglikelihood(Xselected, J, g; mu_X=mu)
+    L_X(J,g) = loglikelihood(Xselected, J, g; mu_X=mu)
     fun = "loglikelihood"
     if N_neurons > ISING_METHOD_THRESHOLD || pop!(dkwargs, :force_MPF, false)
-        F_X(J,g) = MPF_objective(Xselected, J, g)
+        K_X(J,g) = MPF_objective(Xselected, J, g)
         fun = "MPF"
     end
 
@@ -85,12 +92,12 @@ function _NLopt_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
         if verbose
             println("second_order_model[NLopt/$alg]: setting max objective function $fun")
         end
-        max_objective!(opt_Ising, F_X)
+        max_objective!(opt_Ising, L_X)
     else
         if verbose
             println("second_order_model[NLopt/$alg]: setting min objective function $fun")
         end
-        min_objective!(opt_Ising, F_X)
+        min_objective!(opt_Ising, K_X)
     end
     if haskey(dkwargs, :ftol_rel)
         ftol_rel!(opt_Ising, pop!(dkwargs,:ftol_rel))
@@ -119,9 +126,9 @@ function _NLopt_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
         println("\tmax evals: $(maxeval(opt_Ising))")
     end
     (optVal, J_opt, optReturn) = optimize(opt_Ising, Jseed[:])
-    final_val = F_X(J_opt, [])
+    # final_val = F_X(J_opt, [])
     J_opt = reshape(J_opt, N_neurons, N_neurons)
-    return IsingDistribution(J_opt, I; autocomment="second_order_model[NLopt/$alg] (using $fun, final value $final_val)", opt_val=optVal, opt_ret=optReturn, dkwargs...)
+    return IsingDistribution(J_opt, I; autocomment="second_order_model[NLopt/$alg|$fun]", opt_val=optVal, opt_ret=optReturn, dkwargs...)
 end
 
 """

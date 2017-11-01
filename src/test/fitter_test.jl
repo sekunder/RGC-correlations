@@ -37,10 +37,10 @@ println(P_1)
 println("Second order model (i.e. Ising model)")
 tic()
 # P_2 = second_order_model(X, verbose=true, algorithm=:LD_MMA, maxeval=20) #algorithm=:LD_MMA,
-# P_2 = second_order_model(X; verbose=true, more_verbose=true, print_eval=1, maxeval=2)
-(F_opt, J_opt, stop, Jseed, mu, F_used) = second_order_model(X; verbose=true, more_verbose=true, print_eval=1, maxeval=2)
+P_2 = second_order_model(X; verbose=true, more_verbose=true, print_eval=1, maxeval=10)
+# (F_opt, J_opt, stop, Jseed, mu, F_used) = second_order_model(X; verbose=true, more_verbose=true, print_eval=10, maxeval=100)
 toc()
-# println(P_2)
+println(P_2)
 
 # MANUAL GRADIENT DESCENT
 N_neurons, N_samples = size(X)
