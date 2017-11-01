@@ -124,8 +124,8 @@ include("DataDistribution.jl")
 include("BernoulliCodeDistribution.jl")
 include("IsingDistribution.jl")
 
+include("objective_functions.jl")
 include("fitters.jl")
-include("loglikelihood.jl")
 
 export AbstractBinaryVectorDistribution,
        show, n_bits, random, expectation_matrix, entropy, pdf, get_pdf, get_cdf,
