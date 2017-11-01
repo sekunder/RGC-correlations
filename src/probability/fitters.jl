@@ -21,14 +21,49 @@ Returns an `IsingDistribution` which is fit to the pairwise correlations in `X`.
 """
 function second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); verbose=false, kwargs...)
     dkwargs = Dict(kwargs)
+    if get(dkwargs, :algorithm, :naive) == :naive
+        delete!(dkwargs, :algorithm)
+        return _Naive_second_order_model(X, I; verbose=verbose, dkwargs...)
+    else
+        return _NLopt_second_order_model(X, I; verbose=verbose, dkwargs...)
+    end
+end
+function _Naive_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); verbose=false, kwargs...)
+    dkwargs = Dict(kwargs)
+    println("X is a $(typeof(X)), size(X) = $(size(X))") #TODO debugging
+    Xselected = X[I,:]
+    N_neurons,N_samples = size(Xselected)
+    println("Xselected is a $(typeof(Xselected)), size(Xselected) = $(size(Xselected))") #TODO debugging
+
+    Jseed = rand(N_neurons,N_neurons); Jseed = (Jseed + Jseed') / (2 * N_neurons)
+    mu = Xselected * Xselected' / N_samples
+    println("mu is a $(typeof(mu)), size(mu) = $(size(mu))") #TODO debugging
+    F_X(J,g) = loglikelihood(Xselected, J, g; mu_X = mu)
+    fun = "loglikelihood"
+    objective = :max
+    if N_neurons > ISING_METHOD_THRESHOLD || pop!(dkwargs, :force_MPF, false)
+        F_X(J,g) = MPF_objective(Xselected, J, g)
+        fun = "MPF"
+        objective = :min
+    end
+
+    if verbose
+        println("second_order_model[gradient_optimizer]: setting $objective objective $fun")
+    end
+    verbosity = verbose + pop!(dkwargs, :more_verbose, false)
+    (F_opt, J_opt, stop) = gradient_optimizer(F_X, Jseed[:]; objective=objective, verbose=verbosity, dkwargs...)
+    final_val = F_X(J_opt, [])
+    J_opt = reshape(J_opt, N_neurons, N_neurons)
+    # return IsingDistribution(J_opt, I; autocomment="second_order_mode[gradient_optimizer] (using $fun, final value $final_val)", opt_val=optVal, opt_ret=optReturn, dkwargs...) #TODO debugging
+    return (F_opt, J_opt, stop, Jseed, mu, F_X)
+end
+function _NLopt_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); verbose=false, kwargs...)
+    dkwargs = Dict(kwargs)
     Xselected = X[I,:]
     N_neurons,N_samples = size(Xselected)
 
     Jseed = rand(N_neurons,N_neurons); Jseed = (Jseed + Jseed') / (2 * N_neurons)
 
-    # let's try only writing one method, since the only difference is the
-    # function and max/min.
-    opt_Ising = Opt(pop!(dkwargs,:algorithm,:LD_LBFGS), N_neurons^2)
     # for some reaosn I'm getting "F_X not defined". So, I'm going to try
     # definind F_X as loglikelihood no matter what, then override F_X with MPF
     # if necessary. I'll set a flag for which function I used, and then set
@@ -40,28 +75,23 @@ function second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); ver
         F_X(J,g) = MPF_objective(Xselected, J, g)
         fun = "MPF"
     end
+
+    # let's try only writing one method, since the only difference is the
+    # function and max/min.
+    alg = pop!(dkwargs,:algorithm,:LD_LBFGS)
+    opt_Ising = Opt(alg, N_neurons^2)
+
     if fun == "loglikelihood"
         if verbose
-            println("second_order_model: setting max objective function $fun")
+            println("second_order_model[NLopt/$alg]: setting max objective function $fun")
         end
         max_objective!(opt_Ising, F_X)
     else
         if verbose
-            println("second_order_model: setting min objective function $fun")
+            println("second_order_model[NLopt/$alg]: setting min objective function $fun")
         end
         min_objective!(opt_Ising, F_X)
     end
-    # if N_neurons <= ISING_METHOD_THRESHOLD && get(dkwargs, :force_MPF, false)
-    #     #TODO current implementation will, say, compute mu_X repeatedly. Change loglikelihood to accept mu as an optional parameter.
-    #     mu = Xselected * Xselected' / N_samples
-    #     F_X(J, g) = loglikelihood(Xselected, J, g; mu_X=mu)
-    #     max_objective!(opt_Ising, F_X)
-    #     fun = "loglikelihood"
-    # else
-    #     F_X(J, g) = MPF_objective(Xselected, J, g)
-    #     min_objective!(opt_Ising, F_X)
-    #     fun = "MPF"
-    # end
     if haskey(dkwargs, :ftol_rel)
         ftol_rel!(opt_Ising, pop!(dkwargs,:ftol_rel))
     end
@@ -81,7 +111,7 @@ function second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); ver
         maxeval!(opt_Ising, pop!(dkwargs,:maxeval))
     end
     if verbose
-        println("second_order_model: running optimization")
+        println("second_order_model[NLopt/$alg]: running optimization")
         println("\talgorithm: $(algorithm(opt_Ising))")
         println("\tftol (rel/abs): $(ftol_rel(opt_Ising)) / $(ftol_abs(opt_Ising))")
         println("\txtol (rel/|abs|): $(xtol_rel(opt_Ising)) / $(norm(xtol_abs(opt_Ising)))")
@@ -91,7 +121,7 @@ function second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); ver
     (optVal, J_opt, optReturn) = optimize(opt_Ising, Jseed[:])
     final_val = F_X(J_opt, [])
     J_opt = reshape(J_opt, N_neurons, N_neurons)
-    return IsingDistribution(J_opt, I; autocomment="second_order_model (using $fun, final value $final_val)", opt_val=optVal, opt_ret=optReturn, dkwargs...)
+    return IsingDistribution(J_opt, I; autocomment="second_order_model[NLopt/$alg] (using $fun, final value $final_val)", opt_val=optVal, opt_ret=optReturn, dkwargs...)
 end
 
 """
