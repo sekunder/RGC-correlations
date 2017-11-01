@@ -95,7 +95,7 @@ function gradient_optimizer(obj_fun, x0; objective=:min,
             println("\t$eval\t$F_cur\t$dF_cur\t$dx_next\t$lr$(eval_opt == eval ? " *" : "")")
         end
 
-        # increment counter
+        # increment counter; eval is now the index of the next step.
         eval += 1
 
         #push cur into prev slot
@@ -113,7 +113,7 @@ function gradient_optimizer(obj_fun, x0; objective=:min,
         # 6 ftol_rel reached (|dF_cur / F_cur| < ftol_rel )
         Fstep_rel = F_cur == 0 ? Inf : abs(dF_cur / F_cur)
         xstep_rel = norm(x_cur) == 0 ? Inf : abs(dx_next / norm(x_cur))
-        stop = stop | [eval >= maxeval,
+        stop = stop | [eval > maxeval,
                         dF_cur == 0.0,
                         dx_next < xtol_abs,
                         xstep_rel < xtol_rel,

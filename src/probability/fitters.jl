@@ -18,6 +18,11 @@ end
     second_order_model(X, I; kwargs...)
 
 Returns an `IsingDistribution` which is fit to the pairwise correlations in `X`.
+
+keyword argument `algorithm` sets the algorithm:
+ * `algorithm = :naive` uses the function `gradient_optimizer` in `optimizers.jl`
+ * `algorithm = :LD_LBFGS` uses the LBFGS algorithm as described in the `NLopt` package
+ * `algorithm = :LD_MMA` uses the MMA algorithm as described in the `NLopt` package
 """
 function second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); verbose=false, kwargs...)
     dkwargs = Dict(kwargs)
@@ -30,19 +35,16 @@ function second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); ver
 end
 function _Naive_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); verbose=false, kwargs...)
     dkwargs = Dict(kwargs)
-    println("X is a $(typeof(X)), size(X) = $(size(X))") #TODO debugging
     Xselected = X[I,:]
     N_neurons,N_samples = size(Xselected)
-    println("Xselected is a $(typeof(Xselected)), size(Xselected) = $(size(Xselected))") #TODO debugging
 
     Jseed = rand(N_neurons,N_neurons); Jseed = (Jseed + Jseed') / (2 * N_neurons)
     mu = Xselected * Xselected' / N_samples
-    println("mu is a $(typeof(mu)), size(mu) = $(size(mu))") #TODO debugging
-    L_X(J,g) = loglikelihood(Xselected, J, g; mu_X = mu) #TODO debugging
+    L_X(J,g) = loglikelihood(Xselected, J, g; mu_X = mu)
     fun = "loglikelihood"
     objective = :max
     if N_neurons > ISING_METHOD_THRESHOLD || pop!(dkwargs, :force_MPF, false)
-        K_X(J,g) = MPF_objective(Xselected, J, g) #TODO debugging
+        K_X(J,g) = MPF_objective(Xselected, J, g)
         fun = "MPF"
         objective = :min
     end
@@ -51,8 +53,6 @@ function _Naive_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
         println("second_order_model[gradient_optimizer]: setting $objective objective $fun")
     end
     verbosity = verbose + pop!(dkwargs, :more_verbose, false)
-    # (F_opt, J_opt, stop) = gradient_optimizer(F_X, Jseed[:]; objective=objective, verbose=verbosity, dkwargs...)
-    # final_val = F_X(J_opt, [])  #TODO debugging
     if fun == "loglikelihood"
         (F_opt, J_opt, stop) = gradient_optimizer(L_X, Jseed[:]; objective=objective, verbose=verbosity, dkwargs...)
     else
