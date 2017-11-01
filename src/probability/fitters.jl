@@ -31,6 +31,7 @@ function second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1);
         return _Naive_second_order_model(X, I; verbose=verbose, kwargs...)
     else
         return _NLopt_second_order_model(X, I; verbose=(verbose>0), algorithm=algorithm, kwargs...)
+    end
 end
 function _Naive_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); verbose=0, kwargs...)
     dkwargs = Dict(kwargs)
