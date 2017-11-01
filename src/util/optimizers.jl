@@ -125,7 +125,7 @@ function gradient_optimizer(obj_fun, x0; objective=:min,
         println("gradient_optimizer: optimal value found: $F_opt")
     end
     if verbose > 1
-        println("gradient_optimizer: opt. value reached at evaluation $eval_opt / $eval")
+        println("gradient_optimizer: opt. value reached at evaluation $eval_opt / $maxeval")
         println("gradient_optimizer: Learning rate adjusted $whoopscount time$(whoopscount != 1 ? "s" : "")")
         println("gradient_optimizer: final learning rate: $lr")
     end
