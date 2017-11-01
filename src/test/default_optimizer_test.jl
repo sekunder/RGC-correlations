@@ -21,31 +21,49 @@ println("Loading stimulus cause of poor planning")
 stim = CRCNS_Stimulus(joinpath(Stimulus.default_CRCNS_dir, data_dir, fname), rec_idx; verbose=true)
 println("Computing spike histogram and raster with bin size = $(frame_time(stim))")
 X = transpose(raster(spikes, frame_time(stim)))
+N_neurons,N_samples = size(X)
 
-println("Data distribution (i.e. histogram of patterns)")
+println("--------------------------------------------------------------------------------")
+println("* Second order model (i.e. Ising model). Two different fitters: gradient_optimizer, NLopt using LD_LBFGS")
+println("* Also two different functions: L_X and K_X")
+println("--------------------------------------------------------------------------------")
+println("* Varying the learning rate parameter for gradient_optimizer")
+println("\tThe goal is to decide what the default algorithm should be.")
+lr_options = [1.0, 1.0 * N_neurons, 10.0, 1.0*N_neurons^2]
+L_naive = Dict()
+for lr in lr_options
+    tic()
+    P_2 = second_order_model(X; verbose=2, algorithm=:naive, lr=lr)
+    t = toc()
+    L_naive[lr] = (P_2, t, P_2.metadata[:opt_val])
+end
+println("--------------------------------------------------------------------------------")
+println("* Now using NLopt with LD_LBFGS algorithm")
 tic()
-P_data = data_model(X)
-toc()
-println(P_data)
+P_2_NLopt_L = second_order_model(X; verbose=true, algorithm=:LD_LBFGS)
+t_NLopt_L = toc()
+L_NLopt = (P_2_NLopt_L, t_NLopt_L, P_2_NLopt_L.metadata[:opt_val])
+println("--------------------------------------------------------------------------------")
 
-println("First order model (i.e. Bernoulli code)")
-tic()
-P_1 = first_order_model(X)
-toc()
-println(P_1)
+println("* Using gradient_optimizer, here are the function values and times (followed by learning rate)")
+for (k,v) in L_naive
+    println("$(v[2])\t$(v[3]) s\t(lr = $k)")
+end
+println("* Compare to NLopt:")
+println("$(L_NLopt[2])\t$(L_NLopt[3]) s")
 
-println("Second order model (i.e. Ising model). Three different fitters: gradient_optimizer, LD_LBFGS, LD_MMA")
-tic()
-# P_2 = second_order_model(X, verbose=true, algorithm=:LD_MMA, maxeval=20) #algorithm=:LD_MMA,
-P_2_naive = second_order_model(X; verbose=true, more_verbose=true, algorithm=:naive)
-# (F_opt, J_opt, stop, Jseed, mu, F_used) = second_order_model(X; verbose=true, more_verbose=true, print_eval=10, maxeval=100)
-toc()
-println(P_2_naive)
-
-tic()
-P_2_LBFGS = second_order_model(X; verbose=true, algorithm=:LD_LBFGS)
-toc()
-println(P_2_LBFGS)
+# K_naive = Dict()
+# for lr in lr_options
+#     tic()
+#     P_2 = second_order_model(X; verbose=2, algorithm=:naive, lr=lr, force_MPF=true, print_eval=1, maxeval=10)
+#     t = toc()
+#     K_naive[lr] = (P_2,t, P_2.metadata[:opt_val])
+# end
+#
+# tic()
+# P_2_NLopt_K = second_order_model(X; verbose=true, algorithm=:LD_LBFGS, force_MPF=true)
+# t_NLopt_K = toc()
+# K_NLopt = (P_2_NLopt_K, t_NLopt_K, P_2_NLopt_K.metadata[:opt_val])
 
 
 # # MANUAL GRADIENT DESCENT

@@ -20,18 +20,17 @@ end
 Returns an `IsingDistribution` which is fit to the pairwise correlations in `X`.
 
 keyword argument `algorithm` sets the algorithm:
+ * `algorithm = :LD_LBFGS` Default is to use LDLBFGS algorithm in NLopt
  * `algorithm = :naive` uses the function `gradient_optimizer` in `optimizers.jl`
- * `algorithm = :LD_LBFGS` uses the LBFGS algorithm as described in the `NLopt` package
  * `algorithm = :LD_MMA` uses the MMA algorithm as described in the `NLopt` package. Don't use this one it's hella slow.
 """
-function second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); verbose=0, kwargs...)
-    dkwargs = Dict(kwargs)
-    if get(dkwargs, :algorithm, :naive) == :naive
-        delete!(dkwargs, :algorithm)
-        return _Naive_second_order_model(X, I; verbose=verbose, dkwargs...)
+function second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1);
+    verbose=0, algorithm=:LD_LBFGS, kwargs...)
+
+    if algorithm == :naive
+        return _Naive_second_order_model(X, I; verbose=verbose, kwargs...)
     else
-        return _NLopt_second_order_model(X, I; verbose=(verbose>0), dkwargs...)
-    end
+        return _NLopt_second_order_model(X, I; verbose=(verbose>0), algorithm=algorithm, kwargs...)
 end
 function _Naive_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); verbose=0, kwargs...)
     dkwargs = Dict(kwargs)
