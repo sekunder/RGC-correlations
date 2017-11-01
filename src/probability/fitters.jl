@@ -59,7 +59,7 @@ function _Naive_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
         (F_opt, J_opt, stop) = gradient_optimizer(K_X, Jseed[:]; objective=objective, verbose=verbosity, dkwargs...)
     end
     J_opt = reshape(J_opt, N_neurons, N_neurons)
-    return IsingDistribution(J_opt, I; autocomment="second_order_mode[gradient_optimizer|$fun]", opt_val=F_opt, opt_ret=stop, dkwargs...)
+    return IsingDistribution(J_opt, I; autocomment="second_order_model[gradient_optimizer|$fun]", opt_val=F_opt, opt_ret=stop, dkwargs...)
     # return (F_opt, J_opt, stop, Jseed, mu, (fun == "loglikelihood" ? L_X : K_X))
 end
 function _NLopt_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); verbose=false, kwargs...)

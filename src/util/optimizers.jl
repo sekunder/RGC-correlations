@@ -130,5 +130,5 @@ function gradient_optimizer(obj_fun, x0; objective=:min,
         println("gradient_optimizer: final learning rate: $lr")
     end
 
-    return F_opt, x_opt, stop
+    return F_opt, x_opt, stopping_criteria[stop]
 end
