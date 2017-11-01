@@ -91,5 +91,7 @@ function gradient_optimizer(F, x0; objective=:min,
                         | ((dF_cur < ftol_abs) << 5)
                         | ((Fstep_rel < ftol_rel) << 6) )
     end
-
+    if verbose > 1
+        # TODO print out information about the optimal value, that sort of thing
+    end
 end
