@@ -19,6 +19,9 @@ end
 
 Returns an `IsingDistribution` which is fit to the pairwise correlations in `X`.
 
+Some useful keywords particular to this function:
+ * `J0` is the initial value used for optimization. Useful for debugging.
+
 keyword argument `algorithm` sets the algorithm:
  * `algorithm = :LD_LBFGS` Default is to use LDLBFGS algorithm in NLopt
  * `algorithm = :naive` uses the function `gradient_optimizer` in `optimizers.jl`
@@ -39,23 +42,33 @@ function _Naive_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
     N_neurons,N_samples = size(Xselected)
 
     Jseed = rand(N_neurons,N_neurons); Jseed = (Jseed + Jseed') / (2 * N_neurons)
+    Jseed = pop!(dkwargs, :J0, Jseed)
     mu = Xselected * Xselected' / N_samples
     L_X(J,g) = loglikelihood(Xselected, J, g; mu_X = mu)
-    fun = "loglikelihood"
-    objective = :max
-    if N_neurons > ISING_METHOD_THRESHOLD || pop!(dkwargs, :force_MPF, false)
-        K_X(J,g) = MPF_objective(Xselected, J, g)
-        fun = "MPF"
-        objective = :min
-    end
+    K_X(J,g) = MPF_objective(Xselected, J, g)
+    fun = (N_neurons > ISING_METHOD_THRESHOLD || pop!(dkwargs, :force_MPF, false)) ? "MPF" : "loglikelihood"
+    objective = (fun == "loglikelihood") ? :max : :min
+    # fun = "loglikelihood"
+    # objective = :max
+    # if N_neurons > ISING_METHOD_THRESHOLD || pop!(dkwargs, :force_MPF, false)
+    #     K_X(J,g) = MPF_objective(Xselected, J, g)
+    #     fun = "MPF"
+    #     objective = :min
+    # end
 
     if verbose > 0
         println("second_order_model[gradient_optimizer]: setting $objective objective $fun")
     end
     # verbosity = verbose + pop!(dkwargs, :more_verbose, false)
     if fun == "loglikelihood"
+        if verbose > 0
+            println("\tApproximate cost: 2^$N_neurons + $N_samples per evalution")
+        end
         (F_opt, J_opt, stop) = gradient_optimizer(L_X, Jseed[:]; objective=objective, verbose=verbose, dkwargs...)
     else
+        if verbose > 0
+            println("\tApproximate cost: $N_neurons * $N_samples per evaluation")
+        end
         (F_opt, J_opt, stop) = gradient_optimizer(K_X, Jseed[:]; objective=objective, verbose=verbose, dkwargs...)
     end
     J_opt = reshape(J_opt, N_neurons, N_neurons)
@@ -68,7 +81,7 @@ function _NLopt_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
     N_neurons,N_samples = size(Xselected)
 
     Jseed = rand(N_neurons,N_neurons); Jseed = (Jseed + Jseed') / (2 * N_neurons)
-
+    Jseed = pop!(dkwargs, :J0, Jseed)
     # for some reaosn I'm getting "F_X not defined". So, I'm going to try
     # definind F_X as loglikelihood no matter what, then override F_X with MPF
     # if necessary. I'll set a flag for which function I used, and then set
@@ -93,11 +106,13 @@ function _NLopt_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
     if fun == "loglikelihood"
         if verbose
             println("second_order_model[NLopt/$alg]: setting max objective function $fun")
+            println("\tApproximate cost: 2^$N_neurons + $N_samples per evalution")
         end
         max_objective!(opt_Ising, L_X)
     else
         if verbose
             println("second_order_model[NLopt/$alg]: setting min objective function $fun")
+            println("\tApproximate cost: $N_neurons * $N_samples per evaluation")
         end
         min_objective!(opt_Ising, K_X)
     end
