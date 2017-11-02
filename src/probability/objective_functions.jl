@@ -68,17 +68,17 @@ function Z.
 function MPF_objective(X::Union{Matrix{Bool}, BitMatrix}, Jtilde::Vector, grad::Vector=[])
     (N_neurons, N_samples) = size(X)
     Jtilde = reshape(Jtilde, N_neurons, N_neurons)
-    J = Jtilde - Diagonal(Jtilde)
     theta = diag(Jtilde)
+    J = Jtilde - Diagonal(Jtilde)
     DeltaX = 2 * X - 1 # this is Δx_l for each codeword x, for each index l
     Kfull = exp((-0.5 * DeltaX .* (J * X) + DeltaX .* theta)/2)
     K = sum_kbn(Kfull[:]) / N_samples
     if length(grad) > 0
         M = zeros(N_neurons, N_neurons)
-        M[1:(N_neurons+1):end] = sum(0.5 * Kfull .* DeltaX, 2)
+        M[1:(N_neurons+1):end] = sum(0.5 * Kfull .* DeltaX, 2) / N_samples
         for p = 1:(N_neurons - 1)
             for q = (p+1):N_neurons
-                M[p,q] = M[q,p] = sum([0.5 * -0.5 * (Kfull[p,w] * DeltaX[p,w] * X[q,w] + Kfull[q,w] * DeltaX[q,w] * X[p,w]) for w = 1:N_samples])
+                M[p,q] = M[q,p] = sum([0.5 * -0.5 * (Kfull[p,w] * DeltaX[p,w] * X[q,w] + Kfull[q,w] * DeltaX[q,w] * X[p,w]) for w = 1:N_samples]) / N_samples
             end
         end
         grad[:] = M[:]
