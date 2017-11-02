@@ -77,11 +77,13 @@ function _NLopt_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
     # actually entered the branch? Or something.
     mu = Xselected * Xselected' / N_samples
     L_X(J,g) = loglikelihood(Xselected, J, g; mu_X=mu)
-    fun = "loglikelihood"
-    if N_neurons > ISING_METHOD_THRESHOLD || pop!(dkwargs, :force_MPF, false)
-        K_X(J,g) = MPF_objective(Xselected, J, g)
-        fun = "MPF"
-    end
+    K_X(J,g) = MPF_objective(Xselected, J, g)
+    fun = (N_neurons > ISING_METHOD_THRESHOLD || pop!(dkwargs, :force_MPF, false)) ? "MPF" : "loglikelihood"
+    # fun = "loglikelihood"
+    # if N_neurons > ISING_METHOD_THRESHOLD || pop!(dkwargs, :force_MPF, false)
+    #     K_X(J,g) = MPF_objective(Xselected, J, g)
+    #     fun = "MPF"
+    # end
 
     # let's try only writing one method, since the only difference is the
     # function and max/min.
@@ -119,6 +121,7 @@ function _NLopt_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
     end
     if verbose
         println("second_order_model[NLopt/$alg]: running optimization")
+        # println("\topt object: $(opt_Ising)") # turns out this just prints "Opt(:algorithm, N_vars)"
         println("\talgorithm: $(algorithm(opt_Ising))")
         println("\tftol (rel/abs): $(ftol_rel(opt_Ising)) / $(ftol_abs(opt_Ising))")
         println("\txtol (rel/|abs|): $(xtol_rel(opt_Ising)) / $(norm(xtol_abs(opt_Ising)))")
