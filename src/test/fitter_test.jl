@@ -134,7 +134,7 @@ end
 begin #sample from P_2_L, using gibbs
     println("* Sampling from P_2_L, using gibbs sampling")
     tic()
-    X_2_L_gibbs = random(P_2_L, N_samples, force_gibbs=true)
+    X_2_L_gibbs = random(P_2_L, N_samples, true)
     toc()
     samples["P_2_L_gibbs"] = X_2_L_gibbs
 end
