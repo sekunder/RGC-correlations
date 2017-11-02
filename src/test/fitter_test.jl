@@ -27,6 +27,13 @@ println("* Computing spike histogram and raster with bin size = $(frame_time(sti
 X = transpose(raster(spikes, frame_time(stim)))
 
 ################################################################################
+#### OBJECTIVE FUNCTIONS
+################################################################################
+mu_data = X * X' / size(X,2)
+L_X(J,g) = loglikelihood(X, J, g; mu_X=mu_data)
+K_X(J,g) = MPF_objective(X, J, g)
+
+################################################################################
 #### FIT MODELS
 ################################################################################
 
@@ -54,13 +61,13 @@ begin # second order, L
     println(P_2_L)
 end
 
-# begin # second order, K
-#     println("* Fitting second order model using MPF")
-#     tic()
-#     P_2_K = second_order_model(X; verbose=true, force_MPF=true)
-#     toc()
-#     println(P_2_L)
-# end
+begin # second order, K
+    println("* Fitting second order model using MPF")
+    tic()
+    P_2_K = second_order_model(X; verbose=true, force_MPF=true)
+    toc()
+    println(P_2_K)
+end
 
 ################################################################################
 #### EXPECTATION MATRICES
@@ -68,7 +75,7 @@ end
 mu_X = expectation_matrix(P_X)
 mu_1 = expectation_matrix(P_1)
 mu_2_L = expectation_matrix(P_2_L)
-# mu_2_K = expectation_matrix(P_2_K)
+mu_2_K = expectation_matrix(P_2_K)
 
 ################################################################################
 #### PLOTS
@@ -88,14 +95,4 @@ begin # Scatter P_* vs. P_X using log-log plot
     xlim(1e-12,maximum(get_pdf(P_X)))
     ylim(1e-15,maximum(get_pdf(P_1)))
     legend(loc="upper left")
-end
-
-
-
-################################################################################
-#### CLEAN UP
-################################################################################
-close_all_the_figs = false
-if close_all_the_figs
-    map(close,[scatter_fig])
 end
