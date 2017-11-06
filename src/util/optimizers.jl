@@ -135,5 +135,61 @@ function gradient_optimizer(obj_fun, x0; objective=:min,
     return F_opt, x_opt, stopping_criteria[stop]
 end
 
+"""
+    brute_force_optimizer(obj_fun, d; kwargs...)
 
-# TODO brute force optimizer (for fitting transfer function)
+Perform a brute force search over a `d`-dimensional cube for the optimal value
+of `obj_fun`.
+
+WARNING: Currently only accepts functions which take exactly 3 parameters,
+because that's all I need it for. And let's be real, you shouldn't be doing this
+for large `d` anyway. (The further reason I am not generalizing is that I'll be
+using this on a machine running Julia v0.5, so no Itertools package, and don't
+feel like writing my own product iterator.)
+
+Current functionality is limited: Must pass `ranges = [iter1, iter2, iter3]` as
+a kwarg, this will define the cube in which search takes place. Each `iter` can
+be any iterator that is indexed by a range of the form `1:N` and returns `Real`
+numbers (and reports `length(iter) = N`)
+
+"""
+function brute_force_optimizer(obj_fun, d::Integer;
+    objective=:min,
+    lb=0.0, ub=1.0,
+    kwargs...)
+    # TODO brute force optimizer (for fitting transfer function)
+    if d == 3
+        return brute_force_optimizer3(obj_fun; lb=lb, ub=ub, kwargs...)
+    else
+        error("brute_force_optimizer: Can't actually handle dimensionality other than 3 right now, sorry.")
+    end
+end
+function brute_force_optimizer3(obj_fun;
+    objective=:min, kwargs...)
+    # lb=0.0, ub=1.0,
+
+    d = 3
+
+    dkwargs = Dict(kwargs)
+    # lb = length(lb) < d ? lb * ones(d) : [lb...]
+    # ub = lengtH(ub) < d ? ub * ones(d) : [ub...]
+    obj_sign = (objective == :min) ? -1 : 1)
+    #MAYBEDO implement lots of options to allow automated creation of ranges from, e.g. lb and ub.
+
+    # for now, make life easy and assume explicit ranges have been passed as `ranges` kwarg.
+    score = zeros(length(ranges[1]), length(ranges[2]), length(ranges[3]))
+    x_opt = zeros(d)
+    F_opt = -obj_sign * Inf
+    for (i1,x1) in enumerate(ranges[1])
+        for (i2,x2) in enumerate(ranges[2])
+            for (i3,x3) in enumerate(ranges[3])
+                score[i,j,k] = obj_fun([x1,x2,x3])
+                if score[i,j,k] * obj_sign > F_opt * obj_sign
+                    F_opt = score[i,j,k]
+                    x_opt = [x1,x2,x3]
+                end
+            end
+        end
+    end
+    return F_opt, x_opt, [:brute_force_search]
+end
