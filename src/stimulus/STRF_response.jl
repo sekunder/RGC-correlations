@@ -45,7 +45,7 @@ Mathematically, I'm thinking of `ϕ(x; θ)` as the transfer function which I'm
 applying to `r`, and `Q` as the penalty function for how close `ϕ(r(t); θ)` is
 to `n(t)`.
 
-Prorgrammatically, this means:
+Programmatically, this means:
  * `r::Vector{Float64}` is probably a rate computed from `STRF_response`
  * `n::Vector{Float64}` is probably a single neuron's spike histogram
  * `phi(x, theta)` should accept vectors `x` and `theta` and return a vector the same length as `x`
@@ -72,7 +72,7 @@ function scale_response(r::Vector{Float64}, n::Vector{Float64}, phi, Q;
         #MAYBEDO expand to other options
         error("scale_response: No, seriously, the only algorithm option is :brute_force_search (got $algorithm)")
     end
-    obj_fun(x) = Q(phi(r, x), n)
+    obj_fun(x::Vector) = Q(phi(r, x), n)
     Q_opt, theta_opt, criteria = brute_force_optimizer(obj_fun, d; dkwargs...)
     return phi(r, theta_opt), theta_opt, Q_opt
 end
