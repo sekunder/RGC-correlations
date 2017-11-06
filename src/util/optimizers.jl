@@ -134,3 +134,6 @@ function gradient_optimizer(obj_fun, x0; objective=:min,
 
     return F_opt, x_opt, stopping_criteria[stop]
 end
+
+
+# TODO brute force optimizer (for fitting transfer function)

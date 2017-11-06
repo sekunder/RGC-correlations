@@ -17,3 +17,6 @@ function show_metadata(io::IO, A::Any)
         end
     end
 end
+# TODO replace declaration in probability.jl
+# TODO replace delcaration in spikes.jl
+# TODO replace declaration in stimulus.jl
