@@ -136,10 +136,15 @@ function gradient_optimizer(obj_fun, x0; objective=:min,
 end
 
 """
-    brute_force_optimizer(obj_fun, d; kwargs...)
+    brute_force_optimizer(obj_fun, d; objective=:min, kwargs...)
 
 Perform a brute force search over a `d`-dimensional cube for the optimal value
-of `obj_fun`.
+of `obj_fun`. Returns `F_opt, x_opt, [:brute_force_search]` to mirror output
+from `gradient_optimizer`
+
+Some kwargs that can be passed:
+ * `ranges::Vector{Iterable}` A vector of `d` iterables explicitly defining the search space
+ * `save_fun::Array{Float64,d}` a matrix that will be modified in-place with the function values over the whole cube. Size must match the `length` of each iterable in `ranges`
 
 WARNING: Currently only accepts functions which take exactly 3 parameters,
 because that's all I need it for. And let's be real, you shouldn't be doing this
@@ -154,39 +159,43 @@ numbers (and reports `length(iter) = N`)
 
 """
 function brute_force_optimizer(obj_fun, d::Integer;
-    objective=:min,
-    lb=0.0, ub=1.0,
-    kwargs...)
-    # TODO brute force optimizer (for fitting transfer function)
+    objective=:min, kwargs...)
     if d == 3
-        return brute_force_optimizer3(obj_fun; lb=lb, ub=ub, kwargs...)
+        return brute_force_optimizer3(obj_fun, d; objectuve=objective, kwargs...)
     else
         error("brute_force_optimizer: Can't actually handle dimensionality other than 3 right now, sorry.")
+        #MAYBEDO expand to any dimensionality
     end
 end
-function brute_force_optimizer3(obj_fun;
-    objective=:min, kwargs...)
-    # lb=0.0, ub=1.0,
+function brute_force_optimizer3(obj_fun, d;
+    objective=:min, save_fun::Array{Float64}=[], kwargs...)
 
     d = 3
 
     dkwargs = Dict(kwargs)
+    obj_sign = (objective == :min) ? -1 : 1
     # lb = length(lb) < d ? lb * ones(d) : [lb...]
     # ub = lengtH(ub) < d ? ub * ones(d) : [ub...]
-    obj_sign = (objective == :min) ? -1 : 1)
-    #MAYBEDO implement lots of options to allow automated creation of ranges from, e.g. lb and ub.
 
-    # for now, make life easy and assume explicit ranges have been passed as `ranges` kwarg.
-    score = zeros(length(ranges[1]), length(ranges[2]), length(ranges[3]))
+    #MAYBEDO implement lots of options to allow automated creation of ranges
+    #from, e.g. lb and ub.
+
+    # for now, make life easy and assume explicit ranges have been passed as
+    # `ranges` kwarg.
     x_opt = zeros(d)
     F_opt = -obj_sign * Inf
+    F_cur = 0.0
     for (i1,x1) in enumerate(ranges[1])
         for (i2,x2) in enumerate(ranges[2])
             for (i3,x3) in enumerate(ranges[3])
-                score[i,j,k] = obj_fun([x1,x2,x3])
-                if score[i,j,k] * obj_sign > F_opt * obj_sign
-                    F_opt = score[i,j,k]
+                # score[i,j,k] = obj_fun([x1,x2,x3])
+                F_cur = obj_fun([x1,x2,x3])
+                if F_cur * obj_sign > F_opt * obj_sign
+                    F_opt = F_cur
                     x_opt = [x1,x2,x3]
+                end
+                if length(save_fun) > 0
+                    save_fun[i1,i2,i3] = F_cur
                 end
             end
         end

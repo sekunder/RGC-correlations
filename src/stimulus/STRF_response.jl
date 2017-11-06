@@ -35,15 +35,44 @@ function STRF_response(STRF::AbstractStimulus, stimulus::AbstractStimulus;
     return r * dx * frame_time(STRF), frame_time(STRF)
 end
 
-# TODO why don't I just write the generic brute force search optimizer
-# TODO then I can define some penalty functions here
-# """
-#     scale_response(r, n, phi, Q, theta0; objective=:min, lb=0.0, ub=1.0, kwargs...)
-#
-# Finds parameters for the function `phi` to minimize penalty function `Q`,
-# """
-# function scale_response(r::Vector{Float64}, n::Vector{Float64}, phi, Q, theta0::Vector{Float64};
-#     objective=:max
-#     lb::Union{Float64,Vector{Float64}}=0.0, ub::Union{Float64,Vector{Float64}}=1.0,
-#     kwargs...)
-# end
+"""
+    scale_response(r, n, phi, Q; objective=:min, kwargs...)
+
+Finds parameters for the function `phi` to minimize penalty function `Q`.
+Returns the scaled output, the optimal parameters, and the value of `Q`.
+
+Mathematically, I'm thinking of `ϕ(x; θ)` as the transfer function which I'm
+applying to `r`, and `Q` as the penalty function for how close `ϕ(r(t); θ)` is
+to `n(t)`.
+
+Prorgrammatically, this means:
+ * `r::Vector{Float64}` is probably a rate computed from `STRF_response`
+ * `n::Vector{Float64}` is probably a single neuron's spike histogram
+ * `phi(x, theta)` should accept vectors `x` and `theta` and return a vector the same length as `x`
+ * `Q(v,w)` should accept two vectors and return a single number
+
+Some keyword arguments:
+ * `objective=:min` whether to maximizer or minimize `Q`
+ * `d` is the dimensionality of the search space (if using brute force search)
+ * `theta0` is an initial guess for the value of the parameters (if using some other algorithm)
+ * `algorithm=:brute_force_search` how to search for the optimum
+
+Currently, only supports brute force search, but I'm leaving the door open to
+expand this if it seems necessary. (If we're being honest this function is
+mostly unnecessary anyway since all it's doing is acting as a wrapper to...
+another function. But it'll make my scripts readable so whatever.)
+
+"""
+function scale_response(r::Vector{Float64}, n::Vector{Float64}, phi, Q;
+    algorithm=:brute_force_search
+    kwargs...)
+
+    dkwargs = Dict(kwargs)
+    if algorithm != :brute_force_search
+        #MAYBEDO expand to other options
+        error("scale_response: No, seriously, the only algorithm option is :brute_force_search (got $algorithm)")
+    end
+    obj_fun(x) = Q(phi(r, x), n)
+    Q_opt, theta_opt, criteria = brute_force_optimizer(obj_fun, d; dkwargs...)
+    return phi(r, theta_opt), theta_opt, Q_opt
+end
