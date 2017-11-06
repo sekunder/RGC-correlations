@@ -86,6 +86,6 @@ include("CRCNS_Stimulus.jl")
 
 export show, frame_size, frame_time, frame_rate, matrix_form, frame_image,
        GrayScaleStimulus, CRCNS_Stimulus,
-       compute_STRFs
+       compute_STRFs, STRF_response
 
 end
