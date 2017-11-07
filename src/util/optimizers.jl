@@ -161,7 +161,7 @@ numbers (and reports `length(iter) = N`)
 function brute_force_optimizer(obj_fun, d::Integer; verbose=false,
     objective=:min, kwargs...)
     if d == 3
-        return brute_force_optimizer3(obj_fun, d; objective=objective, kwargs...)
+        return brute_force_optimizer3(obj_fun, d; verbose=verbose, objective=objective, kwargs...)
     else
         error("brute_force_optimizer: Can't actually handle dimensionality other than 3 right now, sorry.")
         #MAYBEDO expand to any dimensionality
@@ -185,10 +185,14 @@ function brute_force_optimizer3(obj_fun, d; verbose=false,
     x_opt = zeros(d)
     F_opt = -obj_sign * Inf
     F_cur = 0.0
+    ranges = pop!(dkwargs, :ranges)
     if verbose
         println("brute_force_optimizer: $(obj_sign > 0 ? "maximizing" : "minimizing") function of $d variables")
         for k = 1:d
             println("\trange $k: $(length(ranges[k])) options")
+        end
+        if length(save_fun) > 0
+            println("\tWriting function values to matrix")
         end
     end
     for (i1,x1) in enumerate(ranges[1])

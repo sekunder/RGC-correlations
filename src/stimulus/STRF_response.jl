@@ -68,13 +68,13 @@ See the `brute_force_optimizer` documentation for some necessary kwargs.
 function scale_response(r::Vector{Float64}, n::Vector{Float64}, phi, Q;
     algorithm=:brute_force_search, kwargs...)
 
-    dkwargs = Dict(kwargs)
+    # dkwargs = Dict(kwargs)
     if algorithm != :brute_force_search
         #MAYBEDO expand to other options
         error("scale_response: No, seriously, the only algorithm option is :brute_force_search (got $algorithm)")
     end
-    d = pop!(dkwargs, :d, 3)
+    # d = pop!(dkwargs, :d, 3)
     obj_fun(x::Vector) = Q(phi(r, x), n)
-    Q_opt, theta_opt, criteria = brute_force_optimizer(obj_fun, d; dkwargs...)
+    Q_opt, theta_opt, criteria = brute_force_optimizer3(obj_fun, 3; kwargs...)
     return phi(r, theta_opt), theta_opt, Q_opt
 end
