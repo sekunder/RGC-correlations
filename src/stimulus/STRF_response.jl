@@ -26,11 +26,11 @@ function STRF_response(STRF::AbstractStimulus, stimulus::AbstractStimulus;
     if flip_stimulus_time
         M_stim = flipdim(M_stim, 2)
     end
-    dx = prod(STRF.d) * STRF.mm_per_px
+    dx = prod(STRF.d .* STRF.mm_per_px)
     N_bits_per_frame, N_frames = size(M_stim)
     r = zeros(N_frames)
     for bit = 1:N_bits_per_frame
-        r[:] = conv(M_strf[bit,:], M_stim[bit,:])[1:length(r)]
+        r[:] += conv(M_strf[bit,:], M_stim[bit,:])[1:length(r)]
     end
     return r * dx * frame_time(STRF), frame_time(STRF)
 end
