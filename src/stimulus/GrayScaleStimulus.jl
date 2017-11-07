@@ -30,7 +30,7 @@ type GrayScaleStimulus{T<:AbstractArray} <: AbstractStimulus
     onset::Float64
     # metadata
     zerotonegative::Bool # whether a 0 in pixel_values should be changed to -1
-    metadata::Dict{Any,Any}
+    metadata::Dict
 end
 
 """
@@ -47,6 +47,7 @@ end
 
 function show(io::IO, S::GrayScaleStimulus)
     println(io, "Grayscale stimulus")
+    println(io, "Duration: $(frame_time(S) * size(S.pixel_vals,2)) s")
     println(io, "Frame size (w,h): $(frame_size(S)) pixels, $(S.mm_per_px .* frame_size(S)) mm")
     println(io, "Frame rate: $(S.frame_rate) Hz ($(frame_time(S)) s/frame)")
     show_metadata(io, S)
@@ -88,7 +89,8 @@ Returns an array of `GrayScaleStimulus` objects, one for each neuron.
 function compute_STRFs(spike_hist::Matrix{Float64}, S::GrayScaleStimulus; kwargs...)
     RFs = _compute_STRFs(spike_hist, S; kwargs...)
     # let's pop kwargs that are related to computing the RFs
-    dkwargs = Dict(kwargs)
+    dkwargs = Dict{Any,Any}(kwargs)
     window_length_s = pop!(dkwargs, :window_length_s, 0.5)
-    return [GrayScaleStimulus(RFs[:,i,:], S; onset=-window_length_s, zerotonegative=false, dkwargs...) for i = 1:size(RFs,2)]
+    # dkwargs[:autocomment] = "STRF computed with compute_STRFs"
+    return [GrayScaleStimulus(RFs[:,i,:], S; onset=-window_length_s, zerotonegative=false, autocomment="STRF computed with compute_STRFs", dkwargs...) for i = 1:size(RFs,2)]
 end
