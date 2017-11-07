@@ -1,20 +1,22 @@
 
 """
-    inhomogeneous_poisson_process(lam, dt, tmax = length(lam) * dt, sampling_rate_factor = 1)
+    inhomogeneous_poisson_process(lam, dt; Tmax = length(lam) * dt, sampling_rate_factor = 1)
 
 Returns a sequence of spike times produced by the inhomogeneous poisson process
 with rate `lambda`. `dt` is 1/sampling rate.
 
 To produce a more reliable spike train, increase `sampling_rate_factor`. If
 `sampling_rate_factor = k` then the function first computes `kron(lam, ones(k))`
-and uses sampling rate `dt/k`(For instance, with the CRCNS data, `k` between 10
-and 20 seems to work)
+and uses sampling rate `dt/k` (For instance, with the CRCNS data, `k` between 10
+and 20 seems to work).
 
 Will not produce spikes with repeated spike times (this could come up if, e.g.
 `lam[t]` is close to `0`)
 
+based on the first algorithm outlined at http://freakonometrics.hypotheses.org/724
+
 """
-function inhomogeneous_poisson_process(lam::Vector{Float64}, dt::Float64,
+function inhomogeneous_poisson_process(lam::Vector{Float64}, dt::Float64;
   Tmax::Float64=length(lam) * dt, sampling_rate_factor::Int=1)
   # based on the first algorithm outlined at http://freakonometrics.hypotheses.org/724
   dt = dt/sampling_rate_factor
