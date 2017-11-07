@@ -90,5 +90,6 @@ function compute_STRFs(spike_hist::Matrix{Float64}, S::GrayScaleStimulus; kwargs
     # let's pop kwargs that are related to computing the RFs
     dkwargs = Dict(kwargs)
     window_length_s = pop!(dkwargs, :window_length_s, 0.5)
+    dkwargs[:autocomment] = "STRF computed with compute_STRFs"
     return [GrayScaleStimulus(RFs[:,i,:], S; onset=-window_length_s, zerotonegative=false, dkwargs...) for i = 1:size(RFs,2)]
 end

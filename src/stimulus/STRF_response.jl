@@ -1,4 +1,4 @@
-
+include("../util/optimizers.jl")
 """
     STRF_response(STRF, stimulus; kwargs...)
 
@@ -30,7 +30,7 @@ function STRF_response(STRF::AbstractStimulus, stimulus::AbstractStimulus;
     N_bits_per_frame, N_frames = size(M_stim)
     r = zeros(N_frames)
     for bit = 1:N_bits_per_frame
-        ans[:] = conv(M_strf[bit,:], M_stim[bit,:])[1:length(r)]
+        r[:] = conv(M_strf[bit,:], M_stim[bit,:])[1:length(r)]
     end
     return r * dx * frame_time(STRF), frame_time(STRF)
 end
@@ -62,16 +62,18 @@ expand this if it seems necessary. (If we're being honest this function is
 mostly unnecessary anyway since all it's doing is acting as a wrapper to...
 another function. But it'll make my scripts readable so whatever.)
 
+See the `brute_force_optimizer` documentation for some necessary kwargs.
+
 """
 function scale_response(r::Vector{Float64}, n::Vector{Float64}, phi, Q;
-    algorithm=:brute_force_search
-    kwargs...)
+    algorithm=:brute_force_search, kwargs...)
 
     dkwargs = Dict(kwargs)
     if algorithm != :brute_force_search
         #MAYBEDO expand to other options
         error("scale_response: No, seriously, the only algorithm option is :brute_force_search (got $algorithm)")
     end
+    d = pop!(dkwargs, :d, 3)
     obj_fun(x::Vector) = Q(phi(r, x), n)
     Q_opt, theta_opt, criteria = brute_force_optimizer(obj_fun, d; dkwargs...)
     return phi(r, theta_opt), theta_opt, Q_opt
