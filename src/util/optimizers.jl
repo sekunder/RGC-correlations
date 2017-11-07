@@ -161,7 +161,7 @@ numbers (and reports `length(iter) = N`)
 function brute_force_optimizer(obj_fun, d::Integer; verbose=false,
     objective=:min, kwargs...)
     if d == 3
-        return brute_force_optimizer3(obj_fun, d; objectuve=objective, kwargs...)
+        return brute_force_optimizer3(obj_fun, d; objective=objective, kwargs...)
     else
         error("brute_force_optimizer: Can't actually handle dimensionality other than 3 right now, sorry.")
         #MAYBEDO expand to any dimensionality
