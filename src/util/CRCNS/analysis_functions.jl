@@ -24,6 +24,7 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
     verbose=0, CRCNS_script_version=v"0.1", kwargs...)
     # fname = basename(mat_file)
     # floc = dirname(abspath(mat_file))
+    base_name = remove_extension(basename(mat_file))
     if !isdir(output_dir)
         if verbose > 0
             println("CRCNS_output_STRFs: making directory $(abspath(output_dir))")
@@ -34,7 +35,7 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
     stim = CRCNS_Stimulus(mat_file, rec_idx; verbose=(verbose > 1))
     spikes = Spikes.CRCNS_get_spikes_from_file(mat_file, rec_idx)
     idx = mapreduce(x -> 2^(x-1), +, spikes.I)
-    filename = "CRCNS_STRF_$idx.jld"
+    filename = "$(base_name)_STRF_$idx.jld"
     #MAYBEDO figure out how to use expressions to make this customizable.
 
     spike_hist = histogram(spikes, frame_time(stim))
