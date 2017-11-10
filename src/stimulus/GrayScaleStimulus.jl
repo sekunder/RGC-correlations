@@ -49,6 +49,7 @@ function show(io::IO, S::GrayScaleStimulus)
     println(io, "Grayscale stimulus")
     println(io, "Duration: $(frame_time(S) * size(S.pixel_vals,2)) s")
     println(io, "Frame size (w,h): $(frame_size(S)) pixels, $(S.mm_per_px .* frame_size(S)) mm")
+    #TODO(small) information about the resolution of the image, that sort of thing
     println(io, "Frame rate: $(S.frame_rate) Hz ($(frame_time(S)) s/frame)")
     show_metadata(io, S)
 end

@@ -1,3 +1,4 @@
+#TODO(medium) make a CRCNS folder in /src/stimulus
 using MAT
 """
     CRCNS_Stimulus(mat_file, recording_index;
