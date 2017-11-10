@@ -1,6 +1,6 @@
 # miscellaneous functions that don't quite fit in any module, since they might
 # use features from multiple modules.
-
+using JLD
 """
     CRCNS_output_STRFs(mat_file, output_dir, rec_idx; kwargs...)
 
@@ -15,6 +15,12 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
     verbose=false, CRCNS_script_version=v"0.1", kwargs...)
     # fname = basename(mat_file)
     # floc = dirname(abspath(mat_file))
+    if !isdir(output_dir)
+        if verbose
+            println("CRCNS_output_STRFs: making directory $(abspath(output_dir))")
+        end
+        mkpath(output_dir)
+    end
 
     stim = CRCNS_Stimulus(mat_file, rec_idx; verbose=verbose)
     spikes = Spikes.CRCNS_get_spikes_from_file(mat_file, rec_idx)
@@ -23,12 +29,6 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
     spike_hist = histogram(spikes, frame_time(stim))
     STRFs = compute_STRFs(spike_hist, stim)
     timestamp = now()
-    if !isdir(output_dir)
-        if verbose
-            println("CRCNS_output_STRFs: making directory $output_dir")
-        end
-        mkdir(output_dir)
-    end
     if verbose
         println("CRCNS_output_STRFs: writing jld file to $output_dir")
     end
