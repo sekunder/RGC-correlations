@@ -34,13 +34,31 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
     stim = CRCNS_Stimulus(mat_file, rec_idx; verbose=(verbose > 1))
     spikes = Spikes.CRCNS_get_spikes_from_file(mat_file, rec_idx)
     idx = mapreduce(x -> 2^(x-1), +, spikes.I)
+    filename = "CRCNS_STRF_$idx.jld"
+    #MAYBEDO figure out how to use expressions to make this customizable.
 
     spike_hist = histogram(spikes, frame_time(stim))
-    STRFs = compute_STRFs(spike_hist, stim)
-    timestamp = now()
-    if verbose > 0
-        println("CRCNS_output_STRFs: writing jld file to $output_dir")
+    # now let's check if these things have already been computed, to save time
+    file_exists = ispath(joinpath(output_dir, filename))
+    STRF_exists = false
+    if file_exists
+        d = load(joinpath(output_dir, filename))
+        STRF_exists = d["CRCNS_script_version"] == CRCNS_script_version
     end
-    save(joinpath(output_dir, "CRCNS_STRF_$idx.jld"), "CRCNS_script_version", CRCNS_script_version, "STRFs", STRFs, "timestamp", timestamp)
+    if !file_exists || !STRF_exists
+        STRFs = compute_STRFs(spike_hist, stim)
+        timestamp = now()
+    else
+        if verbose > 0
+            println("CRCNS_output_STRFs: reading jld file $(joinpath(output_dir, filename))")
+        end
+        STRFs = d["STRFs"]
+    end
+    if !file_exists
+        if verbose > 0
+            println("CRCNS_output_STRFs: writing jld file $(joinpath(output_dir, filename))")
+        end
+        save(joinpath(output_dir, filename), "CRCNS_script_version", CRCNS_script_version, "STRFs", STRFs, "timestamp", timestamp)
+    end
     return stim, spikes, spike_hist, STRFs
 end
