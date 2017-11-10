@@ -8,6 +8,7 @@ call `compute_STRFs(raster, stimulus)` regardless of the data source.
 module Stimulus
 
 import Base.show
+include("../util/metadata.jl")
 
 ################################################################################
 #### Abstract type to use as a placeholder/to get all docstrings
@@ -22,7 +23,6 @@ abstract AbstractStimulus
 ################################################################################
 #### Miscellaneous functions and constants
 ################################################################################
-include("../util/metadata.jl")
 
 default_CRCNS_dir = ispath("/Users/sekunder/Documents/MATLAB/crcns_ret-1") ? "/Users/sekunder/Documents/MATLAB/crcns_ret-1" : "/data1/homes/abk170/crcns_ret-1"
 

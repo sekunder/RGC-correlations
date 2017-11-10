@@ -99,6 +99,7 @@ end
 expectation_matrix(ID::IsingDistribution) = _expectation_matrix(ID)
 
 entropy(ID::IsingDistribution) = _entropy(ID)
+entropy2(ID::IsingDistribution) = _entropy2(ID)
 
 function random(ID::IsingDistribution, n_samples=1, force_gibbs=false)
     if n_bits(ID) <= ISING_METHOD_THRESHOLD && !force_gibbs

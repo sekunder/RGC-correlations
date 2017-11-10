@@ -6,6 +6,7 @@ Includes types and methods for representing probability distributions on the set
 module Probability
 
 import Base.show
+include("../util/metadata.jl")
 
 ################################################################################
 #### Abstract type to use as placeholder/to get all docstrings in one place
@@ -21,6 +22,10 @@ abstract AbstractBinaryVectorDistribution
 #### Miscellaneous functions and constants
 ################################################################################
 
+#TODO some of the internal functions are strictly internal, so it makes sense to
+#follow the _name convention. But, like, is there any need to do this for
+#_entropy and similar things? Might be worth refactoring all that at some point.
+
 """
     ISING_METHOD_THRESHOLD
 
@@ -29,17 +34,6 @@ sampling and use MPF instead of LogLikelihood to for the parameters.
 """
 const ISING_METHOD_THRESHOLD = 20
 const METH_THRESH_WARN_KEY = 1
-
-function show_metadata(io::IO, P::AbstractBinaryVectorDistribution)
-    if isempty(P.metadata)
-        println(io, "No metadata found")
-    else
-        println(io, "Metadata:")
-        for (k,v) in P.metadata
-            println(io, "\t$k : $v")
-        end
-    end
-end
 
 """
     binary_to_int(x::Union{BitVector, Vector{Bool}})
@@ -115,7 +109,34 @@ function _expectation_matrix(P::AbstractBinaryVectorDistribution)
     return em
 end
 
-_entropy(P::AbstractBinaryVectorDistribution) = -sum_kbn([p * log(p) for p in filter(x -> 0 < x < 1, get_pdf(P))])
+"""
+    entropy(P)
+
+Entropy, in nats (i.e. natural log is used) of the given distribution. Sets a
+metadata value.
+
+"""
+function _entropy(P::AbstractBinaryVectorDistribution)
+    if !haskey(P.metadata, :entropy)
+        #MAYBEDO figure out how the get! function works. I assume since it's a
+        #function call, it'll evalute all arguments first. But, if that's not
+        #the case this could be cleaned up, I suppose.
+        P.metadata[:entropy] = -sum_kbn([p * log(p) for p in filter(x -> 0 < x < 1, get_pdf(P))])
+    end
+    return P.metadata[:entropy]
+end
+
+"""
+    entropy2(P)
+
+Returns the
+"""
+function _entropy2(P::AbstractBinaryVectorDistribution)
+    if !haskey(P.metadata, :entropy2)
+        P.metadata[:entropy2] = -sum_kbn([p * log2(p) for p in filter(x -> 0 < x < 1, get_pdf(P))])
+    end
+    return P.metadata[:entropy2]
+end
 
 ################################################################################
 #### Include definitions of concrete distributions, other functions
@@ -128,7 +149,7 @@ include("objective_functions.jl")
 include("fitters.jl")
 
 export AbstractBinaryVectorDistribution,
-       show, n_bits, random, expectation_matrix, entropy, pdf, get_pdf, get_cdf,
+       show, n_bits, random, expectation_matrix, entropy, entropy2, pdf, get_pdf, get_cdf,
        DataDistribution, BernoulliCodeDistribution, IsingDistribution,
        first_order_model, second_order_model, data_model,
        loglikelihood, MPF_objective
