@@ -76,5 +76,6 @@ function expectation_matrix(B::BernoulliCodeDistribution)
 end
 
 entropy(P::BernoulliCodeDistribution) = -sum([(p_i * log(p_i) + (1-p_i) * log(1-p_i)) for p_i in filter(x -> 0 < x < 1, P.p)])
+entropy2(P::BernoulliCodeDistribution) = -sum([(p_i * log2(p_i) + (1-p_i) * log2(1-p_i)) for p_i in filter(x -> 0 < x < 1, P.p)])
 
 random(B::BernoulliCodeDistribution, n_samples=1) = rand(n_bits(B), n_samples) .< B.p

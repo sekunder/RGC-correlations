@@ -87,6 +87,7 @@ end
 expectation_matrix(DD::DataDistribution) = DD.X * DD.X' / size(DD.X,2)
 
 entropy(DD::DataDistribution) = -sum_kbn([p * log(p) for p in nonzeros(DD.P)])
+entropy2(DD::DataDistribution) = -sum_kbn([p * log2(p) for p in nonzeros(DD.P)])
 
 # function random(DD::DataDistribution, n_samples=1)
 #     X = falses(n_bits(DD), n_samples)
