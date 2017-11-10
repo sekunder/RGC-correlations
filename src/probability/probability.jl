@@ -22,9 +22,12 @@ abstract AbstractBinaryVectorDistribution
 #### Miscellaneous functions and constants
 ################################################################################
 
-#TODO some of the internal functions are strictly internal, so it makes sense to
-#follow the _name convention. But, like, is there any need to do this for
-#_entropy and similar things? Might be worth refactoring all that at some point.
+#TODO(medium) some of the internal functions are strictly internal, so it makes
+#sense to follow the _name convention. But, like, is there any need to do this
+#for _entropy and similar things? Might be worth refactoring all that at some
+#point (good guideline: if function(arg) = _function(arg) is appearing in your
+#code, you can probably change _function to function, and avoid declarating
+#function(arg) in the first place.)
 
 """
     ISING_METHOD_THRESHOLD

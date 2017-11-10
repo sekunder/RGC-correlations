@@ -1,7 +1,7 @@
 # miscellaneous functions that don't quite fit in any module, since they might
 # use features from multiple modules.
 
-#TODO modify everything to put version and/or timestamp into object metadata
+#TODO (big) modify everything to put version and/or timestamp into object metadata
 using JLD
 """
     CRCNS_output_STRFs(mat_file, output_dir, rec_idx; kwargs...)
