@@ -35,7 +35,7 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
     stim = CRCNS_Stimulus(mat_file, rec_idx; verbose=(verbose > 1))
     spikes = Spikes.CRCNS_get_spikes_from_file(mat_file, rec_idx)
     idx = mapreduce(x -> 2^(x-1), +, spikes.I)
-    filename = "$(base_name)_STRF_$idx.jld"
+    filename = "$base_name-$(rec_idx)_STRF_$idx.jld"
     #MAYBEDO figure out how to use expressions to make this customizable.
 
     spike_hist = histogram(spikes, frame_time(stim))
