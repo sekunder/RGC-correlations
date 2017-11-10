@@ -79,7 +79,7 @@ screen. `idx` is the index of the frame, while `t` is the time of display. If
 `relative_time` is `true`, time `t = 0.0` corresponds to stimulus onset.
 
 """
-# TODO all of these will need checking to make sure I am consistent in reshaping stuff.
+# TODO(big) all of these will need checking to make sure I am consistent in reshaping stuff.
 function frame_image(S::CRCNS_Stimulus, idx::Int)
     # first get the column from bits
     # frame_vec = S.bits[:,idx]

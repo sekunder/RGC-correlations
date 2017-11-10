@@ -1,3 +1,4 @@
+#TODO(medium) make a CRCNS folder in /src/stimulus
 using MAT
 """
     CRCNS_Stimulus(mat_file, recording_index;
@@ -12,6 +13,7 @@ function CRCNS_Stimulus(mat_file::String, recording_index::Int; verbose=false, k
     fname = basename(mat_file)
     floc = dirname(abspath(mat_file))
     if verbose
+        #TODO(medium) Fix all verbose output to include function name.
         println("Reading CRCNS stimulus data from file: $(joinpath(floc, fname))")
     end
     vars = matread(joinpath(floc, fname))

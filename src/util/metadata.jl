@@ -18,6 +18,18 @@ function show_metadata(io::IO, A::Any)
     end
 end
 
+#TODO(big) either scrap existing data, or write some compatibility scripts to
+#handle the fact that this could break some JLD files (not that I've actually
+#made any yet, but it's the kind of thing to keep in mind...)
+
+#TODO(small) add "hidden metadata", i.e. information where I only want to know that a key exists
+#TODO(small) add to Bernoulli
+#TODO(small) add to Data
+#TODO(small) add to Ising
+#TODO(small) add to Spikes
+#TODO(small) add to Stimulus
+#TODO(small) hide_metadata! and unhide_metadata!
+
 """
     metadata(A::Any, k::Any)
 

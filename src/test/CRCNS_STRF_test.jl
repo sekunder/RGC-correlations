@@ -1,10 +1,11 @@
-using MAT
+using MAT, JLD
 include("../probability/probability.jl")
 include("../spikes/spikes.jl")
 include("../stimulus/stimulus.jl")
 using Probability, Spikes, Stimulus
 include("../util/misc.jl")
 include("../util/nonlinearities.jl")
+include("../util/CRCNS/analysis_functions.jl")
 
 data_dir = "Data"
 fname = "20080516_R1.mat"
@@ -21,7 +22,8 @@ println("* Computing spike histograms with bin size = $(frame_time(stim))")
 spike_hist = histogram(spikes, frame_time(stim))
 
 println("* Computing STRFs")
-STRFs = compute_STRFs(spike_hist, stim)
+# STRFs = compute_STRFs(spike_hist, stim)
+STRFs = CRCNS_output_STRFs(joinpath(Stimulus.default_CRCNS_dir, data_dir, fname), rec_idx, "test/CRCNS/STRF_real", verbose=true)
 map(println, STRFs)
 
 using PyPlot
