@@ -17,6 +17,19 @@ function show_metadata(io::IO, A::Any)
         end
     end
 end
-# TODO replace declaration in probability.jl
-# TODO replace delcaration in spikes.jl
-# TODO replace declaration in stimulus.jl
+
+"""
+    metadata(A::Any, k::Any)
+
+Convenience function, returns `A`'s metadata value for key `k`, or `:none` if it
+is not set.
+"""
+metadata(A::Any, k::Any) = get(A.metadata, k, :none)
+
+"""
+    metadata!(A::Any, k::Any, v::Any=:none)
+
+Convenience function, sets metadata for `A`. Can be called without third
+argument to ensure key `k` exists in `A`'s metadata.
+"""
+metadata!(A::Any, k::Any, v::Any=:none) = get!(A.metadata, k, v)

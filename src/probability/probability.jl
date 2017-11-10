@@ -6,6 +6,7 @@ Includes types and methods for representing probability distributions on the set
 module Probability
 
 import Base.show
+include("../util/metadata.jl")
 
 ################################################################################
 #### Abstract type to use as placeholder/to get all docstrings in one place
@@ -29,17 +30,6 @@ sampling and use MPF instead of LogLikelihood to for the parameters.
 """
 const ISING_METHOD_THRESHOLD = 20
 const METH_THRESH_WARN_KEY = 1
-
-function show_metadata(io::IO, P::AbstractBinaryVectorDistribution)
-    if isempty(P.metadata)
-        println(io, "No metadata found")
-    else
-        println(io, "Metadata:")
-        for (k,v) in P.metadata
-            println(io, "\t$k : $v")
-        end
-    end
-end
 
 """
     binary_to_int(x::Union{BitVector, Vector{Bool}})
