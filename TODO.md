@@ -44,5 +44,5 @@ include in "hidden metadata")
     Possible solution: Make a `:hidden` key for metadata; `hide_metadata!(A, key)` just adds `key` to `A.metadata[:hidden]`, then `show_metadata` checks if there's any keys to skip.
 [ ] Move everything from `/src` to top level, maybe?
 [x] `probability.jl`: find func defs of the form `func(args) = _func(args)` and change them
-[ ] `GrayScaleStimulus.jl` add information about resolution to `show`
+[x] `GrayScaleStimulus.jl` add information about resolution to `show`
 [ ] `stimulus.jl` move default_CRCNS_dir definition to new file `/util/init.jl`
