@@ -18,8 +18,8 @@ function CRCNS_Stimulus(mat_file::String, recording_index::Int; verbose=false, k
     end
     vars = matread(joinpath(floc, fname))
 
-    px = (Int(vars["stimulus"]["param"][recording_index]["x"]), Int(vars["stimulus"]["param"][recording_index]["y"]))
-    d = (Int(vars["stimulus"]["param"][recording_index]["dx"]), Int(vars["stimulus"]["param"][recording_index]["dy"]))
+    px = [Int(vars["stimulus"]["param"][recording_index]["x"]), Int(vars["stimulus"]["param"][recording_index]["y"])]
+    d = [Int(vars["stimulus"]["param"][recording_index]["dx"]), Int(vars["stimulus"]["param"][recording_index]["dy"])]
     N = map(Int, px ./ d)
     mm_per_px = vars["stimulus"]["pixelsize"][recording_index] / 1000.0
     frame_length_s = vars["stimulus"]["frame"][recording_index]

@@ -20,9 +20,9 @@ type GrayScaleStimulus{T<:AbstractArray} <: AbstractStimulus
     # the actual values for the screen
     pixel_vals::T
     # the dimensions on screen
-    N::Tuple{Int,Int}
-    px::Tuple{Int,Int}
-    d::Tuple{Int,Int}
+    N::Vector{Int}
+    px::Vector{Int}
+    d::Vector{Int}
     mm_per_px::Float64
     # timing. frame_rate = 1/frame_length_s
     frame_length_s::Float64
@@ -78,7 +78,7 @@ the time is time since stimulus onset in seconds.
 function frame_image(S::GrayScaleStimulus, idx::Int)
     fm = reshape(S.pixel_vals[:,idx], reverse(S.N))
     frame = _pixel_values_to_float(fm, S.zerotonegative)
-    return kron(frame, ones(reverse(S.d)))
+    return kron(frame, ones(reverse(S.d)...))
 end
 frame_image(S::GrayScaleStimulus, t::Float64, relative_time::Bool=false) = frame_image(S, ceil(Int, (relative_time ? t - S.onset : t)/frame_time(S)))
 
