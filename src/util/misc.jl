@@ -30,7 +30,7 @@ function random_subset(A,k::Integer)
             R[j] = A[i]
         end
     end
-return R
+    return R
 end
 
 """
