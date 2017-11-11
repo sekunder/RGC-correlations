@@ -22,12 +22,6 @@ abstract AbstractBinaryVectorDistribution
 #### Miscellaneous functions and constants
 ################################################################################
 
-#TODO(medium) some of the internal functions are strictly internal, so it makes
-#sense to follow the _name convention. But, like, is there any need to do this
-#for _entropy and similar things? Might be worth refactoring all that at some
-#point (good guideline: if function(arg) = _function(arg) is appearing in your
-#code, you can probably change _function to function, and avoid declarating
-#function(arg) in the first place.)
 
 """
     ISING_METHOD_THRESHOLD
@@ -49,15 +43,22 @@ mess you up if `length(x) > 63`
 _binary_to_int(x::BitVector) = Int(x.chunks[1])
 _binary_to_int(x::Vector{Bool}) = dot([2^i for i = 0:(length(x) - 1)], x)
 
+# """
+#     get_pdf(P), get_cdf(P)
+#
+# Internally-used function to return a vector of the PDF of the distribution.
+# Naive implementation just calls pdf(P,x) over all possible x. Note that for this
+# internal method to work correctly, pdf(P,x) should cache the value in
+# P.cache[:pdf] as a side effect.
+# """
 """
-    get_pdf(P), get_cdf(P)
+    get_pdf(P)
 
-Internally-used function to return a vector of the PDF of the distribution.
-Naive implementation just calls pdf(P,x) over all possible x. Note that for this
-internal method to work correctly, pdf(P,x) should cache the value in
-P.cache[:pdf] as a side effect.
+Returns the pdf of `P` as a `Vector{Float64}`, where `pdf[i]` is the probability
+of `digits(Bool, i-1, 2, n_bits(P))`
+
 """
-function _get_pdf(P::AbstractBinaryVectorDistribution)
+function get_pdf(P::AbstractBinaryVectorDistribution)
     if get(P.metadata, :pdf_computed, false)
         return full(P.cache[:pdf])
     else
@@ -66,7 +67,15 @@ function _get_pdf(P::AbstractBinaryVectorDistribution)
     end
 end
 
-function _get_cdf(P::AbstractBinaryVectorDistribution)
+"""
+    get_cdf(P)
+
+Returns the "cdf" of `P` as a `Vector{Float64}`, meaning `cumsum(get_pdf(P))`.
+(I mean, it's a "cdf" in the sense that you can put a total order {0,1}^n, but
+really it's just used for sampling from the distribution.)
+
+"""
+function get_cdf(P::AbstractBinaryVectorDistribution)
     if haskey(P.cache, :cdf)
         cdf = P.cache[:cdf]
     else
@@ -102,7 +111,7 @@ Returns a matrix with the expected values of bits and pairs of bits. Default
 behavior is to call get_pdf(P) and then loop through those values.
 
 """
-function _expectation_matrix(P::AbstractBinaryVectorDistribution)
+function expectation_matrix(P::AbstractBinaryVectorDistribution)
     em = zeros(n_bits(P), n_bits(P))
     p = get_pdf(P)
     for k = 0:(2^n_bits(P) - 1)
@@ -119,7 +128,7 @@ Entropy, in nats (i.e. natural log is used) of the given distribution. Sets a
 metadata value.
 
 """
-function _entropy(P::AbstractBinaryVectorDistribution)
+function entropy(P::AbstractBinaryVectorDistribution)
     if !haskey(P.metadata, :entropy)
         #MAYBEDO figure out how the get! function works. I assume since it's a
         #function call, it'll evalute all arguments first. But, if that's not
@@ -132,9 +141,11 @@ end
 """
     entropy2(P)
 
-Returns the
+Entropy, in bits (i.e. log base 2 is used) of the given distribution. Sets a
+metadata value.
+
 """
-function _entropy2(P::AbstractBinaryVectorDistribution)
+function entropy2(P::AbstractBinaryVectorDistribution)
     if !haskey(P.metadata, :entropy2)
         P.metadata[:entropy2] = -sum_kbn([p * log2(p) for p in filter(x -> 0 < x < 1, get_pdf(P))])
     end

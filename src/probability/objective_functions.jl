@@ -39,11 +39,7 @@ function loglikelihood(X::Union{Matrix{Bool}, BitMatrix}, Jtilde::Vector, grad::
     (N_neurons, N_samples) = size(X)
     Jtilde = reshape(Jtilde, N_neurons,N_neurons)
     P = IsingDistribution(Jtilde)
-    # the way i implemented this before, I just called the pdf function over and
-    # over again. So in fact, theoretically the caching I implemented would
-    # provide a speed up here. In fact, I should change the _expectation_matrix
-    # function so that it invokes get_pdf, so that BCD and ID will cache all the
-    # values. Then things should be speedy?
+    
     if length(grad) > 0
         # performing this computation first, if it's necessary, results in all
         # the pdf values being cached.

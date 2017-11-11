@@ -77,17 +77,6 @@ function pdf(ID::IsingDistribution, x::Union{Vector{Bool},BitVector})
     end
 end
 
-# function get_pdf(ID::IsingDistribution)
-#     if get(ID.metadata, :pdf_computed, false)
-#         return full(ID.cache[:pdf])
-#     else
-#         ID.metadata[:pdf_computed] = true
-#         return _get_pdf(ID)
-#     end
-# end
-get_pdf(ID::IsingDistribution) = _get_pdf(ID)
-
-get_cdf(ID::IsingDistribution) = _get_cdf(ID)
 
 function show(io::IO, P::IsingDistribution)
     println(io, "Ising Distribution")
@@ -96,10 +85,6 @@ function show(io::IO, P::IsingDistribution)
     show_metadata(io, P)
 end
 
-expectation_matrix(ID::IsingDistribution) = _expectation_matrix(ID)
-
-entropy(ID::IsingDistribution) = _entropy(ID)
-entropy2(ID::IsingDistribution) = _entropy2(ID)
 
 function random(ID::IsingDistribution, n_samples=1, force_gibbs=false)
     if n_bits(ID) <= ISING_METHOD_THRESHOLD && !force_gibbs
