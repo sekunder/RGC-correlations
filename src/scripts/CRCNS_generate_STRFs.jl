@@ -1,5 +1,5 @@
 
-CRCNS_script_version=v"0.1"
+CRCNS_script_version=v"0.2"
 # plan: for each mat file, for each recording index:
 # 1. load the stimulus, call CRCNS_output_STRFs to save them to file
 # 2. for each STRF: compute response to stimulus, scale response, generate spike trains using scaled response.
