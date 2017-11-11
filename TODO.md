@@ -40,6 +40,7 @@ include in "hidden metadata")
 # General Coding Stuff
 
 [ ] Think about what I need from a "version" system.
+[ ] Add version info/timestamp to metadata of objects, maybe?
 [x] Implement a "hidden metadata" system. The problem I want to solve is: I might want to include information in the `metadata` field which could be, say, a vector of length > 1000. I don't want to print that value in `show_metadata`, but maybe just the key.
     Possible solution: Make a `:hidden` key for metadata; `hide_metadata!(A, key)` just adds `key` to `A.metadata[:hidden]`, then `show_metadata` checks if there's any keys to skip.
 [ ] Move everything from `/src` to top level, maybe?
