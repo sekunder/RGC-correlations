@@ -41,17 +41,6 @@ function pdf(Pr::BernoulliCodeDistribution, x::Union{Vector{Bool},BitVector})
     # length(x) == length(Pr.p) ? prod([x[i] ? Pr.p[i] : (1-Pr.p[i]) for i = 1:length(Pr.p)]) : error("BernoulliCodeDistribution: out of domain error")
 end
 
-# function get_pdf(B::BernoulliCodeDistribution)
-#     if get(B.metadata, :pdf_computed, false)
-#         return full(B.cache[:pdf])
-#     else
-#         B.metadata[:pdf_computed] = true
-#         return _get_pdf(B)
-#     end
-# end
-get_pdf(B::BernoulliCodeDistribution) = _get_pdf(B)
-
-get_cdf(B::BernoulliCodeDistribution) = _get_cdf(B)
 
 
 function show(io::IO, P::BernoulliCodeDistribution)

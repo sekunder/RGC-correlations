@@ -12,23 +12,12 @@ function show_metadata(io::IO, A::Any)
         println(io, "No metadata found")
     else
         println(io, "Metadata:")
-        for (k,v) in A.metadata
-            println(io, "\t$k : $v")
+        hidden_keys = get(A.metadata, :hidden, Any[])
+        for k in setdiff(keys(A.metadata), hidden_keys)
+            println(io, "\t$k : $(A.metadata[k])")
         end
     end
 end
-
-#TODO(big) either scrap existing data, or write some compatibility scripts to
-#handle the fact that this could break some JLD files (not that I've actually
-#made any yet, but it's the kind of thing to keep in mind...)
-
-#TODO(small) add "hidden metadata", i.e. information where I only want to know that a key exists
-#TODO(small) add to Bernoulli
-#TODO(small) add to Data
-#TODO(small) add to Ising
-#TODO(small) add to Spikes
-#TODO(small) add to Stimulus
-#TODO(small) hide_metadata! and unhide_metadata!
 
 """
     metadata(A::Any, k::Any)
@@ -45,3 +34,32 @@ Convenience function, sets metadata for `A`. Can be called without third
 argument to ensure key `k` exists in `A`'s metadata.
 """
 metadata!(A::Any, k::Any, v::Any=:none) = get!(A.metadata, k, v)
+
+"""
+    hide_metadata!(A, k)
+
+"Hides" metadata with key `k`. This means that `show_metadata` will only show
+that this key exists, but not the value stored for it. This could be useful if,
+say, you want to store the spike quality in a `SpikeTrains` object, which would
+be a very long vector. If `k` is not a key in `A.metadata`, has no effect.
+
+"""
+function hide_metadata!(A, k)
+    if haskey(A.metadata, k)
+        A.metadata[:hidden] = union(get!(A.metadata,:hidden,Any[]), [k])
+    end
+end
+
+"""
+    unhide_metadata!(A, k)
+
+"Unhides" metadata with key `k`. This means that `show_metadata` will show both
+the key and the value for `k`. If `k` is not a key in `A.metadata`, has no
+effect.
+
+"""
+function unhide_metadata!(A, k)
+    if haskey(A.metadata, k)
+        A.metadata[:hidden] = setdiff(get!(A.metadata,:hidden,Any[]), [k])
+    end
+end

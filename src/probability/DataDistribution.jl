@@ -57,16 +57,6 @@ pdf(Pr::DataDistribution, x::BitVector) = length(x) == n_bits(Pr) ? Pr.P[1 + Int
 
 get_pdf(DD::DataDistribution) = full(DD.P)
 
-get_cdf(DD::DataDistribution) = _get_cdf(DD)
-# function get_cdf(DD::DataDistribution)
-#     if haskey(DD.cache, :cdf)
-#         cdf = DD.cache[:cdf]
-#     else
-#         cdf = cumsum_kbn(full(DD.P))
-#         DD.cache[:cdf] = cdf
-#     end
-#     return cdf
-# end
 
 function show(io::IO, P::DataDistribution)
     println(io, "Data Distribution")
