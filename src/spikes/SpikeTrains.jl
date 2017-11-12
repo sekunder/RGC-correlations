@@ -73,4 +73,4 @@ end
 
 Returns `histogram(ST, binsize; t0=t0, tmax=tmax) .> 0`
 """
-raster(ST::SpikeTrains, binsize::Float64; t0::Float64=ST.stim_start, tmax::Float64=ST.stim_finish) = histogram(ST, binsize; t0=t0, tmax=tmax) .> 0
+raster(ST::SpikeTrains, binsize::Float64; t0::Float64=ST.stim_start, tmax::Float64=ST.stim_finish, N_bins::Int=ceil(Int,(tmax - t0)/binsize)) = histogram(ST, binsize; t0=t0, tmax=tmax, N_bins=N_bins) .> 0
