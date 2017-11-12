@@ -14,7 +14,7 @@ function CRCNS_Stimulus(mat_file::String, recording_index::Int; verbose=false, k
     floc = dirname(abspath(mat_file))
     if verbose
         #TODO(medium) Fix all verbose output to include function name.
-        println("Reading CRCNS stimulus data from file: $(joinpath(floc, fname))")
+        println("CRCNS_Stimulus: Reading CRCNS stimulus data from file: $(joinpath(floc, fname))")
     end
     vars = matread(joinpath(floc, fname))
 
@@ -27,7 +27,7 @@ function CRCNS_Stimulus(mat_file::String, recording_index::Int; verbose=false, k
     onset = vars["stimulus"]["onset"][recording_index]
 
     if verbose
-        println("Loading binary data from $(joinpath(floc,"..","ran1.bin"))")
+        println("CRCNS_Stimulus: Loading binary data from $(joinpath(floc,"..","ran1.bin"))")
     end
     bin_file = joinpath(floc,"..","ran1.bin")
 
