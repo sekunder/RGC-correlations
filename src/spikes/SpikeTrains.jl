@@ -41,21 +41,29 @@ function show(io::IO, ST::SpikeTrains)
 end
 
 """
-    histogram(ST, binsize; t0=ST.t_i, tmax=ST.t_f)::Matrix{Float64}
+    histogram(ST, binsize; t0=ST.t_i, tmax=ST.t_f, N_bins=ceil(Int,(tmax - t0)/binsize))::Matrix{Float64}
 
 Returns a `N_bins` by `N_cells` matrix where the `i,j`th entry is the number of
 spikes that occurred in bin `i` from neuron `j`. By default returns a histogram
-of spikes that happened during stimulus presentation.
+of spikes that happened during stimulus presentation. To truncate/extend the
+histogram, specify `N_bins`. Truncation ignores spikes that happen later than
+the end of the bins; extension pads with 0s.
+
 """
-function histogram(ST::SpikeTrains, binsize::Float64; t0::Float64=ST.stim_start, tmax::Float64=ST.stim_finish)
+function histogram(ST::SpikeTrains, binsize::Float64;
+    t0::Float64=ST.stim_start, tmax::Float64=ST.stim_finish,
+    N_bins::Int=ceil(Int,(tmax - t0)/binsize))
+
     N_cells = n_cells(ST)
-    N_bins = ceil(Int,(tmax - t0)/binsize)
+    # N_bins = ceil(Int,(tmax - t0)/binsize)
     spike_hist = zeros(N_bins, N_cells)
     for (j,S) = enumerate(ST.TT)
-        Stilde = S[t0 .< S .< tmax]
+        Stilde = ceil(Int, S[t0 .< S .< tmax]/binsize)
+        max_idx = max(maximum(Stilde), N_bins)
+        spike_hist[:,j] = sparsevec(Stilde, ones(length(Stilde)), max_idx)[1:N_bins]
         # sparsevec has a nice constructor that automatically does the counting
         # I want, so...
-        spike_hist[:,j] = sparsevec(ceil(Int, Stilde/binsize), ones(length(Stilde)), N_bins)
+        # spike_hist[:,j] = sparsevec(ceil(Int, Stilde/binsize), ones(length(Stilde)), N_bins)
     end
     return spike_hist
 end
@@ -65,4 +73,4 @@ end
 
 Returns `histogram(ST, binsize; t0=t0, tmax=tmax) .> 0`
 """
-raster(ST::SpikeTrains, binsize::Float64; t0::Float64=ST.stim_start, tmax::Float64=ST.stim_finish) = histogram(ST, binsize; t0=t0, tmax=tmax) .> 0
+raster(ST::SpikeTrains, binsize::Float64; t0::Float64=ST.stim_start, tmax::Float64=ST.stim_finish, N_bins::Int=ceil(Int,(tmax - t0)/binsize)) = histogram(ST, binsize; t0=t0, tmax=tmax, N_bins=N_bins) .> 0

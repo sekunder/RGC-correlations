@@ -24,14 +24,11 @@ abstract AbstractStimulus
 #### Miscellaneous functions and constants
 ################################################################################
 
-#TODO(small) move this somewhere more sensible
-default_CRCNS_dir = ispath("/Users/sekunder/Documents/MATLAB/crcns_ret-1") ? "/Users/sekunder/Documents/MATLAB/crcns_ret-1" : "/data1/homes/abk170/crcns_ret-1"
-
 """
-    framerate(S::AbstractStimulus)
+    frame_rate(S::AbstractStimulus)
 
-Convenience method returns `1/frametime(S)`. Each concrete subtype of
-AbstractStimulus should implement `frametime`.
+Convenience method returns `1/frame_time(S)`. Each concrete subtype of
+`AbstractStimulus` should implement `frame_time`.
 """
 frame_rate(S::AbstractStimulus) = 1.0 / frame_time(S)
 
@@ -86,7 +83,7 @@ include("GrayScaleStimulus.jl")
 include("STRF_response.jl")
 include("CRCNS_Stimulus.jl")
 
-export show, frame_size, frame_time, frame_rate, matrix_form, frame_image,
+export show, frame_size, frame_time, frame_rate, n_frames, matrix_form, frame_image,
        GrayScaleStimulus, CRCNS_Stimulus,
        compute_STRFs, STRF_response, scale_response
 

@@ -1,9 +1,10 @@
 
 """
-    GrayScaleStimulus(px_vals, N, px, d, mm_per_px, frame_length_s, frame_rate, onset, zerotonegative, metadata)
+    GrayScaleStimulus(pixel_vals, N, px, d, mm_per_px, frame_length_s, frame_rate, onset, zerotonegative, metadata)
 
 Object that represents a stimulus that is displayed on screen to the retina.
-Values in `pixel_vals` should be between 0 and 1, inclusive.
+Values in `pixel_vals` should be between 0 and 1, inclusive; `pixel_vals` must be a
+matrix with second dimension equal to the number of frames.
 
 The values `N`, `px`, and `d` determine how the image is displayed on screen.
 Each should be given in "real world" coordinates, where the first coordinate is
@@ -47,7 +48,7 @@ end
 
 function show(io::IO, S::GrayScaleStimulus)
     println(io, "Grayscale stimulus")
-    println(io, "Duration: $(frame_time(S) * size(S.pixel_vals,2)) s")
+    println(io, "Duration: $(frame_time(S) * n_frames(S)) s ($(n_frames(S)) frames)")
     println(io, "Frame size (w,h): $(frame_size(S)) pixels, $(S.mm_per_px .* frame_size(S)) mm")
     println(io, "Resolution (w,h): $(S.N)")
     println(io, "Frame rate: $(S.frame_rate) Hz ($(frame_time(S)) s/frame)")
@@ -56,6 +57,7 @@ end
 
 frame_size(S::GrayScaleStimulus) = S.px
 frame_time(S::GrayScaleStimulus) = S.frame_length_s
+n_frames(S::GrayScaleStimulus) = size(S.pixel_vals, 2)
 
 _pixel_values_to_float(v::BitArray, negative::Bool) = negative ? (-1.0) .^ (!v) : Matrix{Float64}(v)
 _pixel_values_to_float(v, negative::Bool) = negative ? 2.0 * v .- 1.0 : Matrix{Float64}(v)
