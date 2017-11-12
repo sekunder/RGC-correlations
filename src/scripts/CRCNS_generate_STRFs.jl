@@ -86,7 +86,7 @@ for mat_file in mat_files
             sim_STRFs = compute_STRFs(sim_hist, stim)
             println("done")
 
-            indexes = mapreduce(x -> 2^(x-1), +, sim_spikes.I)
+            indexes = index_set_to_int(sim_sikes.I)
             sim_filename = "$(remove_extension(mat_file))-$(rec_idx)_simulated_$indexes.jld"
             println("    Writing simulated spike trains and computed STRFs to $(joinpath(output_dir_sim,sim_filename))")
             save(joinpath(output_dir_sim, sim_filename), "CRCNS_script_version", CRCNS_script_version, "timestamp", now(), "STRFs", sim_STRFs, "spikes", sim_spikes)

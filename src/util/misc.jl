@@ -13,6 +13,27 @@ Removes the trailing ".ext" from `fname`
 remove_extension(fname) = join(split(fname,'.')[1:end-1],'.')
 
 """
+    index_set_to_int(I)
+
+Changes a vector of integers into a single integer with `1`s in the positions
+specified by `I`.
+
+Inverse of `int_to_index_set`
+
+"""
+index_set_to_int(I) = mapreduce(x -> 2^(x-1), +, I)
+
+"""
+    int_to_index_set(x)
+
+Changes an integer to a vector integers, representing the positions of the `1`
+bits.
+
+Inverse of `index_set_to_int`
+"""
+int_to_index_set(x::Int) = find(digits(Bool,x,2))
+
+"""
     random_subset(A,k)
 
 Returns a random subset of k elements from collection A. Uses Reservoir
