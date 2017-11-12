@@ -72,7 +72,7 @@ for mat_file in mat_files
 
         print("\n    Computing simulated STRFs...")
         sim_spikes = SpikeTrains(ST_simulated, spikes.I; comment="Simulated spike train for CRCNS data $mat_file, recording index $rec_idx")
-        sim_hist = histogram(sim_spikes, frame_time(stim))
+        sim_hist = histogram(sim_spikes, frame_time(stim); N_bins=n_frames(stim))
         sim_STRFs = compute_STRFs(sim_hist, stim)
         println("done")
 
