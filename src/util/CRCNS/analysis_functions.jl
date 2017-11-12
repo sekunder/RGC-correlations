@@ -38,7 +38,7 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
     filename = "$base_name-$(rec_idx)_STRF_$idx.jld"
     #MAYBEDO figure out how to use expressions to make this customizable.
 
-    spike_hist = histogram(spikes, frame_time(stim))
+    spike_hist = histogram(spikes, frame_time(stim); N_bins=n_frames(stim))
     # now let's check if these things have already been computed, to save time
     file_exists = ispath(joinpath(output_dir, filename))
     STRF_exists = false

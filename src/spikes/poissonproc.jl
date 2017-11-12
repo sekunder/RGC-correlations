@@ -34,7 +34,7 @@ function inhomogeneous_poisson_process(lam::Vector{Float64}, dt::Float64;
     # if idx > 1 && lam[idx] != 0
     #   t += (s - Lam[idx])/lam[idx]
     # end
-    if t > t_last
+    if Tmax > t > t_last
       push!(times, t)
       t_last = t
     end
