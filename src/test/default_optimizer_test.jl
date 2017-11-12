@@ -15,11 +15,11 @@ fname = "20080516_R1.mat"
 rec_idx = 1
 println("Loading a CRCNS matlab file: $fname")
 println("Creating SpikeTrains object.")
-spikes = Spikes.CRCNS_get_spikes_from_file(joinpath(default_CRCNS_dir, data_dir, fname), rec_idx)
+spikes = Spikes.CRCNS_get_spikes_from_file(joinpath(CRCNS_dir, data_dir, fname), rec_idx)
 println(spikes)
 
 println("Loading stimulus cause of poor planning")
-stim = CRCNS_Stimulus(joinpath(default_CRCNS_dir, data_dir, fname), rec_idx; verbose=true)
+stim = CRCNS_Stimulus(joinpath(CRCNS_dir, data_dir, fname), rec_idx; verbose=true)
 println("Computing spike histogram and raster with bin size = $(frame_time(stim))")
 X = transpose(raster(spikes, frame_time(stim)))
 N_neurons,N_samples = size(X)

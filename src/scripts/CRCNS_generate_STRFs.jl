@@ -14,9 +14,9 @@ include("../util/misc.jl")
 include("../util/constants.jl")
 using Spikes, Stimulus, Probability
 
-data_dir = joinpath(default_CRCNS_dir, "Data")
-output_dir_real = joinpath(default_CRCNS_dir, "analysis", "STRF", "real")
-output_dir_sim = joinpath(default_CRCNS_dir, "analysis", "STRF", "sim")
+data_dir = joinpath(CRCNS_dir, "Data")
+output_dir_real = joinpath(CRCNS_dir, "analysis", "STRF", "real")
+output_dir_sim = joinpath(CRCNS_dir, "analysis", "STRF", "sim")
 
 mat_files = filter(x -> endswith(x, ".mat"), readdir(data_dir))
 # mat_files = filter(x -> x == "20080516_R1.mat", readdir(data_dir)) #for debugging
@@ -54,7 +54,7 @@ for mat_file in mat_files
             println("  Skipping processing.")
         else
             print("    Computing real STRFs...")
-            # stim = CRCNS_Stimulus(joinpath(default_CRCNS_dir, data_dir, mat_file), rec_idx)
+            # stim = CRCNS_Stimulus(joinpath(CRCNS_dir, data_dir, mat_file), rec_idx)
             # spike_hist = histogram(spikes, frame)
             stim, spikes, spike_hist, STRFs = CRCNS_output_STRFs(joinpath(data_dir, mat_file), rec_idx, output_dir_real; CRCNS_script_version=CRCNS_script_version)
             println("done")

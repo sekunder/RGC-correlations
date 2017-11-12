@@ -13,10 +13,10 @@ fname = "20080516_R1.mat"
 rec_idx = 1
 println("* Loading a CRCNS matlab file: $fname")
 println("* Creating CRCNS_Stimulus object.")
-stim = CRCNS_Stimulus(joinpath(default_CRCNS_dir, data_dir, fname), rec_idx; verbose=true)
+stim = CRCNS_Stimulus(joinpath(CRCNS_dir, data_dir, fname), rec_idx; verbose=true)
 println(stim)
 println("* Creating SpikeTrains object.")
-spikes = Spikes.CRCNS_get_spikes_from_file(joinpath(default_CRCNS_dir, data_dir, fname), rec_idx)
+spikes = Spikes.CRCNS_get_spikes_from_file(joinpath(CRCNS_dir, data_dir, fname), rec_idx)
 println(spikes)
 
 println("* Computing spike histograms with bin size = $(frame_time(stim))")
@@ -24,7 +24,7 @@ spike_hist = histogram(spikes, frame_time(stim))
 
 println("* Computing STRFs")
 # STRFs = compute_STRFs(spike_hist, stim)
-STRFs = CRCNS_output_STRFs(joinpath(default_CRCNS_dir, data_dir, fname), rec_idx, "test/CRCNS/STRF_real", verbose=true)
+STRFs = CRCNS_output_STRFs(joinpath(CRCNS_dir, data_dir, fname), rec_idx, "test/CRCNS/STRF_real", verbose=true)
 map(println, STRFs)
 
 using PyPlot
