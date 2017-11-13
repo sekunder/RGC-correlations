@@ -5,6 +5,7 @@ include("../stimulus/stimulus.jl")
 using Spikes, Stimulus, Probability
 include("../util/constants.jl")
 include("../util/misc.jl")
+include("../util/metadata.jl")
 include("../util/CRCNS/analysis_functions.jl")
 using JLD
 
