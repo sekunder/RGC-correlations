@@ -58,7 +58,7 @@ function histogram(ST::SpikeTrains, binsize::Float64;
     # N_bins = ceil(Int,(tmax - t0)/binsize)
     spike_hist = zeros(N_bins, N_cells)
     for (j,S) = enumerate(ST.TT)
-        Stilde = ceil(Int, S[t0 .< S .< tmax]/binsize)
+        Stilde = ceil.(Int, S[t0 .< S .< tmax]/binsize)
         max_idx = max(maximum(Stilde), N_bins)
         spike_hist[:,j] = sparsevec(Stilde, ones(length(Stilde)), max_idx)[1:N_bins]
         # sparsevec has a nice constructor that automatically does the counting

@@ -18,7 +18,7 @@ include("../util/metadata.jl")
 
 Abstract type used as placeholder.
 """
-abstract AbstractStimulus
+abstract type AbstractStimulus end
 
 ################################################################################
 #### Miscellaneous functions and constants
