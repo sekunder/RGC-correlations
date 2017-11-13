@@ -81,7 +81,7 @@ end
 ################################################################################
 include("GrayScaleStimulus.jl")
 include("STRF_response.jl")
-include("CRCNS_Stimulus.jl")
+include("CRCNS/CRCNS_Stimulus.jl")
 
 export show, frame_size, frame_time, frame_rate, n_frames, matrix_form, frame_image,
        GrayScaleStimulus, CRCNS_Stimulus,

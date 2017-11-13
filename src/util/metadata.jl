@@ -23,9 +23,11 @@ end
     metadata(A::Any, k::Any)
 
 Convenience function, returns `A`'s metadata value for key `k`, or `:none` if it
-is not set.
+is not set. Honestly completely unnecessary except to make scripts a little more
+readable.
+
 """
-metadata(A::Any, k::Any) = get(A.metadata, k, :none)
+metadata(A::Any, k::Any, default=:none) = get(A.metadata, k, default)
 
 """
     metadata!(A::Any, k::Any, v::Any=:none)
