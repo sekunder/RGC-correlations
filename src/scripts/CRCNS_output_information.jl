@@ -23,7 +23,7 @@ sim_jld_files = filter(x -> endswith(x,".jld"), readdir(sim_jld_dir))
 println("-" ^ 80)
 println("CRCNS_output_information: BEGIN SCRIPT $(now())")
 
-n_trials = length(ARGS) > 0 ? parse(Int, ARGS[1]) : 20
+n_trials = length(ARGS) > 0 ? parse(Int, ARGS[1]) : 1
 
 for dir in [CRCNS_information_dir]
     if !isdir(dir)
@@ -32,7 +32,7 @@ for dir in [CRCNS_information_dir]
     end
 end
 
-println("Loading simulated and real spikes, then fitting P_1, P_2 to various subsamples of the data.")
+println("Loading simulated and real spikes, then fitting P_1, P_2 to subsamples of the data.")
 println("Will run $n_trials trials for each sample size")
 println("Will write output to $CRCNS_information_dir")
 
@@ -77,7 +77,7 @@ for sim_file in sim_jld_files
 
     # decide sample size ranges. I think 5:5:40 is about right, intersected with 1:N_neurons, then union N_neurons
     size_range = sort!(union(intersect(1:n_cells(real_spikes), 5:5:40), n_cells(real_spikes)))
-    println("  Preparing to fit models to subsamples for sizes $(join(size_range, ", "))")
+    println("  Preparing to fit models to subsamples of sizes $(join(size_range, ", "))")
     # From what I've seen in the JLD docs, there's no "append" mode. So first,
     # we have to load the existing data from the jld file, if it exists.
     P_1_real = Dict{Int, BernoulliCodeDistribution}()
@@ -87,18 +87,19 @@ for sim_file in sim_jld_files
     P_2_sim = Dict{Int, IsingDistribution}()
     P_N_sim = Dict{Int, DataDistribution}()
     if isfile(joinpath(CRCNS_information_dir, "$root_name.jld"))
+        print("  Found $root_name.jld. Loading existing distributions...")
         P_1_real = load(joinpath(CRCNS_information_dir, "$root_name.jld"), "P_1_real")
         P_2_real = load(joinpath(CRCNS_information_dir, "$root_name.jld"), "P_2_real")
         P_N_real = load(joinpath(CRCNS_information_dir, "$root_name.jld"), "P_N_real")
         P_1_sim = load(joinpath(CRCNS_information_dir, "$root_name.jld"), "P_1_sim")
         P_2_sim = load(joinpath(CRCNS_information_dir, "$root_name.jld"), "P_2_sim")
         P_N_sim = load(joinpath(CRCNS_information_dir, "$root_name.jld"), "P_N_sim")
+        println("done.")
     end
+    distro_names = ["P_1_real", "P_2_real", "P_N_real", "P_1_sim", "P_2_sim", "P_N_sim"]
+    distros = [P_1_real, P_2_real, P_N_real, P_1_sim, P_2_sim, P_N_sim]
     jldopen(joinpath(CRCNS_information_dir, "$root_name.jld"), "w") do file
-        #TODO loop through size_range, loop for n_trials, etc.
         for sample_size in size_range
-            #TODO add some verbosity
-            
             # TODO check what subsets have already been fit with at least the
             # current version of the script
 
@@ -106,37 +107,50 @@ for sim_file in sim_jld_files
             # metadata of all the objects? Well, not necessarily.
             index_set = zeros(Int, sample_size)
             for trial = 1:min(n_trials, binomial(n_cells(real_spikes), sample_size))
-                random_subset!(1:n_cells(real_spikes), index_set)
+                sort!(random_subset!(1:n_cells(real_spikes), index_set))
                 index_int = index_set_to_int(index_set)
+                print("    size = $sample_size, trial $trial: [$(join(index_set,","))] Real(")
                 if !haskey(P_1_real, index_int) || metadata(P_1_real[index_int], :CRCNS_script_version, v"0.1") < CRCNS_script_version
                     # short-circuit operator!
                     P_1_real[index_int] = first_order_model(real_raster, index_set; CRCNS_script_version=CRCNS_script_version)
-                end
-                if !haskey(P_1_sim, index_int) || metadata(P_1_sim[index_int], :CRCNS_script_version, v"0.1") < CRCNS_script_version
-                    P_1_sim[index_int] = first_order_model(sim_raster, index_set; CRCNS_script_version=CRCNS_script_version)
+                    print("P_1,")
                 end
                 if !haskey(P_2_real, index_int) || metadata(P_2_real[index_int], :CRCNS_script_version, v"0.1") < CRCNS_script_version
                     # short-circuit operator!
                     P_2_real[index_int] = second_order_model(real_raster, index_set; CRCNS_script_version=CRCNS_script_version)
-                end
-                if !haskey(P_2_sim, index_int) || metadata(P_2_sim[index_int], :CRCNS_script_version, v"0.1") < CRCNS_script_version
-                    P_2_sim[index_int] = second_order_model(sim_raster, index_set; CRCNS_script_version=CRCNS_script_version)
+                    print("P_2,")
                 end
                 if !haskey(P_N_real, index_int) || metadata(P_N_real[index_int], :CRCNS_script_version, v"0.1") < CRCNS_script_version
                     # short-circuit operator!
                     P_N_real[index_int] = data_model(real_raster, index_set; CRCNS_script_version=CRCNS_script_version)
+                    print("P_N")
+                end
+                print(") Sim(")
+
+                if !haskey(P_1_sim, index_int) || metadata(P_1_sim[index_int], :CRCNS_script_version, v"0.1") < CRCNS_script_version
+                    P_1_sim[index_int] = first_order_model(sim_raster, index_set; CRCNS_script_version=CRCNS_script_version)
+                    print("P_1,")
+                end
+                if !haskey(P_2_sim, index_int) || metadata(P_2_sim[index_int], :CRCNS_script_version, v"0.1") < CRCNS_script_version
+                    P_2_sim[index_int] = second_order_model(sim_raster, index_set; CRCNS_script_version=CRCNS_script_version)
+                    print("P_2,")
                 end
                 if !haskey(P_N_sim, index_int) || metadata(P_N_sim[index_int], :CRCNS_script_version, v"0.1") < CRCNS_script_version
                     P_N_sim[index_int] = data_model(sim_raster, index_set; CRCNS_script_version=CRCNS_script_version)
+                    print("P_N")
                 end
+                println(")")
             end
         end
-        file["P_1_real"] = P_1_real
-        file["P_2_real"] = P_2_real
-        file["P_N_real"] = P_N_real
-        file["P_1_sim"] = P_1_sim
-        file["P_2_sim"] = P_2_sim
-        file["P_N_sim"] = P_N_sim
+        # file["P_1_real"] = P_1_real
+        # file["P_2_real"] = P_2_real
+        # file["P_N_real"] = P_N_real
+        # file["P_1_sim"] = P_1_sim
+        # file["P_2_sim"] = P_2_sim
+        # file["P_N_sim"] = P_N_sim
+        for (n, v) in zip(distro_names, distros)
+            write(file, n, v)
+        end
     end
 end
 
