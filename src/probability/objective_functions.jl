@@ -39,7 +39,7 @@ function loglikelihood(X::Union{Matrix{Bool}, BitMatrix}, Jtilde::Vector, grad::
     (N_neurons, N_samples) = size(X)
     Jtilde = reshape(Jtilde, N_neurons,N_neurons)
     P = IsingDistribution(Jtilde)
-    
+
     if length(grad) > 0
         # performing this computation first, if it's necessary, results in all
         # the pdf values being cached.
@@ -67,7 +67,7 @@ function MPF_objective(X::Union{Matrix{Bool}, BitMatrix}, Jtilde::Vector, grad::
     theta = diag(Jtilde)
     J = Jtilde - Diagonal(Jtilde)
     DeltaX = 2 * X - 1 # this is Δx_l for each codeword x, for each index l
-    Kfull = exp((-0.5 * DeltaX .* (J * X) + DeltaX .* theta)/2)
+    Kfull = exp.((-0.5 * DeltaX .* (J * X) + DeltaX .* theta)/2)
     K = sum_kbn(Kfull[:]) / N_samples
     if length(grad) > 0
         M = zeros(N_neurons, N_neurons)

@@ -16,7 +16,7 @@ include("../util/metadata.jl")
 
 Abstract type used as placeholder.
 """
-abstract AbstractBinaryVectorDistribution
+abstract type AbstractBinaryVectorDistribution end
 
 ################################################################################
 #### Miscellaneous functions and constants

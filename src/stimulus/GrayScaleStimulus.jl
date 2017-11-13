@@ -59,7 +59,7 @@ frame_size(S::GrayScaleStimulus) = S.px
 frame_time(S::GrayScaleStimulus) = S.frame_length_s
 n_frames(S::GrayScaleStimulus) = size(S.pixel_vals, 2)
 
-_pixel_values_to_float(v::BitArray, negative::Bool) = negative ? (-1.0) .^ (!v) : Matrix{Float64}(v)
+_pixel_values_to_float(v::BitArray, negative::Bool) = negative ? (-1.0) .^ (.!v) : Matrix{Float64}(v)
 _pixel_values_to_float(v, negative::Bool) = negative ? 2.0 * v .- 1.0 : Matrix{Float64}(v)
 
 """
