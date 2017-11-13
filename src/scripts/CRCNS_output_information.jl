@@ -24,7 +24,7 @@ sim_jld_files = filter(x -> endswith(x,".jld"), readdir(sim_jld_dir))
 println("-" ^ 80)
 println("CRCNS_output_information: BEGIN SCRIPT $(now())")
 
-n_trials = length(ARGS) > 0 ? parse(Int, ARGS[1]) : 1
+n_trials = length(ARGS) > 0 ? parse(Int, ARGS[1]) : 20
 
 for dir in [CRCNS_information_dir]
     if !isdir(dir)
