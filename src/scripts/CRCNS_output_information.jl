@@ -87,19 +87,19 @@ for sim_file in sim_jld_files
     P_1_sim = Dict{Int, BernoulliCodeDistribution}()
     P_2_sim = Dict{Int, IsingDistribution}()
     P_N_sim = Dict{Int, DataDistribution}()
-    if isfile(joinpath(CRCNS_information_dir, "$root_name.jld"))
-        print("  Found $root_name.jld. Loading existing distributions...")
-        P_1_real = load(joinpath(CRCNS_information_dir, "$root_name.jld"), "P_1_real")
-        P_2_real = load(joinpath(CRCNS_information_dir, "$root_name.jld"), "P_2_real")
-        P_N_real = load(joinpath(CRCNS_information_dir, "$root_name.jld"), "P_N_real")
-        P_1_sim = load(joinpath(CRCNS_information_dir, "$root_name.jld"), "P_1_sim")
-        P_2_sim = load(joinpath(CRCNS_information_dir, "$root_name.jld"), "P_2_sim")
-        P_N_sim = load(joinpath(CRCNS_information_dir, "$root_name.jld"), "P_N_sim")
+    if isfile(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"))
+        print("  Found $root_name-$rec_idx.jld. Loading existing distributions...")
+        P_1_real = load(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"), "P_1_real")
+        P_2_real = load(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"), "P_2_real")
+        P_N_real = load(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"), "P_N_real")
+        P_1_sim = load(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"), "P_1_sim")
+        P_2_sim = load(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"), "P_2_sim")
+        P_N_sim = load(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"), "P_N_sim")
         println("done.")
     end
     distro_names = ["P_1_real", "P_2_real", "P_N_real", "P_1_sim", "P_2_sim", "P_N_sim"]
     distros = [P_1_real, P_2_real, P_N_real, P_1_sim, P_2_sim, P_N_sim]
-    jldopen(joinpath(CRCNS_information_dir, "$root_name.jld"), "w") do file
+    jldopen(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"), "w") do file
         for sample_size in size_range
             # TODO check what subsets have already been fit with at least the
             # current version of the script
@@ -149,6 +149,7 @@ for sim_file in sim_jld_files
         # file["P_1_sim"] = P_1_sim
         # file["P_2_sim"] = P_2_sim
         # file["P_N_sim"] = P_N_sim
+        println("  Writing to file $(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"))")
         for (n, v) in zip(distro_names, distros)
             write(file, n, v)
         end
