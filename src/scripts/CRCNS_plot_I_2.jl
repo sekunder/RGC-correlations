@@ -20,7 +20,7 @@ I_2_real = Dict{Int,Vector{Float64}}()
 I_2_sim = Dict{Int,Vector{Float64}}()
 for k in keys(D)
     I_2_real[k] = (D[k][1,:] - D[k][2,:]) ./ (D[k][1,:] - D[k][3,:])
-    I_1_real[k] = (D[k][4,:] - D[k][5,:]) ./ (D[k][4,:] - D[k][6,:])
+    I_2_sim[k] = (D[k][4,:] - D[k][5,:]) ./ (D[k][4,:] - D[k][6,:])
 end
 
 fig = figure("I_2 ratio from available data", tight_layout=true, figsize=(10,10))
