@@ -64,7 +64,10 @@ function expectation_matrix(B::BernoulliCodeDistribution)
     return em
 end
 
-entropy(P::BernoulliCodeDistribution) = -sum([(p_i * log(p_i) + (1-p_i) * log(1-p_i)) for p_i in filter(x -> 0 < x < 1, P.p)])
-entropy2(P::BernoulliCodeDistribution) = -sum([(p_i * log2(p_i) + (1-p_i) * log2(1-p_i)) for p_i in filter(x -> 0 < x < 1, P.p)])
+# I'm going to be lazy here and allow this value to be computed each time. The
+# parentheses around the second assignment expression are just for human
+# readability.
+entropy(P::BernoulliCodeDistribution) = (P.metadata[:entropy] = -sum([(p_i * log(p_i) + (1-p_i) * log(1-p_i)) for p_i in filter(x -> 0 < x < 1, P.p)]))
+entropy2(P::BernoulliCodeDistribution) = (P.metadata[:entropy] = -sum([(p_i * log2(p_i) + (1-p_i) * log2(1-p_i)) for p_i in filter(x -> 0 < x < 1, P.p)]))
 
 random(B::BernoulliCodeDistribution, n_samples=1) = rand(n_bits(B), n_samples) .< B.p
