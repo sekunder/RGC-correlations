@@ -110,13 +110,14 @@ function CRCNS_collect_entropy(dir=CRCNS_information_dir;
                     k = count_ones(index_int)
 
                     if k <= Probability.ISING_METHOD_THRESHOLD
-                        # push!(get!(H_1_real, k, Float64[]), entropy(P_1_real[index_int]))
-                        # push!(get!(H_2_real, k, Float64[]), entropy(P_2_real[index_int]))
-                        # push!(get!(H_N_real, k, Float64[]), entropy(P_N_real[index_int]))
-                        # push!(get!(H_1_sim, k, Float64[]), entropy(P_1_sim[index_int]))
-                        # push!(get!(H_2_sim, k, Float64[]), entropy(P_2_sim[index_int]))
-                        # push!(get!(H_N_sim, k, Float64[]), entropy(P_N_sim[index_int]))
-                        ents = [entropy(P_1_real[index_int]), entropy(P_2_real[index_int]), entropy(P_N_real[index_int]), entropy(P_1_sim[index_int]), entropy(P_2_sim[index_int]), entropy(P_N_sim[index_int])]
+                        # push!(get!(H_1_real, k, Float64[]), entropy(d["P_1_real"][index_int]))
+                        # push!(get!(H_2_real, k, Float64[]), entropy(d["P_2_real"][index_int]))
+                        # push!(get!(H_N_real, k, Float64[]), entropy(d["P_N_real"][index_int]))
+                        # push!(get!(H_1_sim, k, Float64[]), entropy(d["P_1_sim"][index_int]))
+                        # push!(get!(H_2_sim, k, Float64[]), entropy(d["P_1_sim"][index_int]))
+                        # push!(get!(H_N_sim, k, Float64[]), entropy(d["P_N_sim"][index_int]))
+                        # ents = [entropy(d["P_1_real"][index_int]), entropy(d["P_2_real"][index_int]), entropy(d["P_N_real"][index_int]), entropy(d["P_1_sim"][index_int]), entropy(d["P_1_sim"][index_int]), entropy(d["P_N_sim"][index_int])]
+                        ents = map(entropy, [d[dn] for dn in distr_names])
                         if !haskey(H_all, k)
                             H_all[k] = zeros(6,0)
                         end
@@ -134,6 +135,7 @@ function CRCNS_collect_entropy(dir=CRCNS_information_dir;
             end
         catch y
             if verbose > 0
+                println()
                 println("\tError: $y")
                 println("\tskipping file")
             end
