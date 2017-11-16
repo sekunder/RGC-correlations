@@ -3,7 +3,7 @@
     GrayScaleStimulus(pixel_vals, N, px, d, mm_per_px, frame_length_s, frame_rate, onset, zerotonegative, metadata)
 
 Object that represents a stimulus that is displayed on screen to the retina.
-Values in `pixel_vals` should be between 0 and 1, inclusive; `pixel_vals` must be a
+Values in `pixel_vals` should be `Float`s (32 or 64) between 0 and 1, inclusive, or `UInt8`s between 0 and 255, inclusive; `pixel_vals` must be a
 matrix with second dimension equal to the number of frames.
 
 The values `N`, `px`, and `d` determine how the image is displayed on screen.
@@ -60,6 +60,7 @@ frame_time(S::GrayScaleStimulus) = S.frame_length_s
 n_frames(S::GrayScaleStimulus) = size(S.pixel_vals, 2)
 
 _pixel_values_to_float(v::BitArray, negative::Bool) = negative ? (-1.0) .^ (.!v) : Matrix{Float64}(v)
+_pixel_values_to_float(v::Array{UInt8}, negative::Bool) = _pixel_values_to_float(v / 255.0, negative)
 _pixel_values_to_float(v, negative::Bool) = negative ? 2.0 * v .- 1.0 : Matrix{Float64}(v)
 
 """
@@ -70,17 +71,34 @@ Returns a minimal representation of `S` for performing computations.
 matrix_form(S::GrayScaleStimulus) = _pixel_values_to_float(S.pixel_vals, S.zerotonegative)
 
 """
-    frame_image(S, index)
+    frame_image(S, indexes)
     frame_image(S, time, relative=false)
 
 Returns the frame displayed on screen at the given time. If `relative` is true,
-the time is time since stimulus onset in seconds.
+the time is time since stimulus onset in seconds. The first form can accept any
+valid way of indexing an array (that is, it will pull up
+`S.pixel_vals[:,indexes]`); if `indexes` is a single number, will squeeze the
+last dimension (i.e. return a 2d array); otherwise returns a 3d array where the
+last index is the frame number.
 
 """
-function frame_image(S::GrayScaleStimulus, idx::Int)
-    fm = reshape(S.pixel_vals[:,idx], reverse(S.N))
-    frame = _pixel_values_to_float(fm, S.zerotonegative)
-    return kron(frame, ones(reverse(S.d)...))
+function frame_image(S::GrayScaleStimulus, indexes)
+    if isa(indexes, Number)
+        indexes = [indexes]
+    end
+    img = zeros(reverse(S.px)..., length(indexes))
+    for (img_idx, stim_idx) in enumerate(indexes)
+        fm = reshape(S.pixel_vals[:,stim_idx], reverse(S.N)...)
+        frame = _pixel_values_to_float(fm, S.zerotonegative)
+        img[:,:,img_idx] = kron(frame, ones(reverse(S.d)...))
+    end
+    # fm = reshape(S.pixel_vals[:,idx], reverse(S.N))
+    # frame = _pixel_values_to_float(fm, S.zerotonegative)
+    # return kron(frame, ones(reverse(S.d)...))
+    if length(indexes) == 1
+        img = squeeze(img, 3)
+    end
+    return img
 end
 frame_image(S::GrayScaleStimulus, t::Float64, relative_time::Bool=false) = frame_image(S, ceil(Int, (relative_time ? t - S.onset : t)/frame_time(S)))
 

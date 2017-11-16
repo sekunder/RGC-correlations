@@ -74,3 +74,10 @@ function random_subset!(A, R::Vector)
     end
     return R
 end
+
+"""
+    haskeys(C, keys...)
+
+True if collection `C` has all `keys`
+"""
+haskeys(C, keys...) = all([haskey(C, k) for k in keys])
