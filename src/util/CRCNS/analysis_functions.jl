@@ -117,7 +117,7 @@ function CRCNS_collect_entropy(dir=CRCNS_information_dir;
                         # push!(get!(H_2_sim, k, Float64[]), entropy(d["P_1_sim"][index_int]))
                         # push!(get!(H_N_sim, k, Float64[]), entropy(d["P_N_sim"][index_int]))
                         # ents = [entropy(d["P_1_real"][index_int]), entropy(d["P_2_real"][index_int]), entropy(d["P_N_real"][index_int]), entropy(d["P_1_sim"][index_int]), entropy(d["P_1_sim"][index_int]), entropy(d["P_N_sim"][index_int])]
-                        ents = map(entropy, [d[dn] for dn in distr_names])
+                        ents = map(entropy, [d[dn] for dn in distro_names])
                         if !haskey(H_all, k)
                             H_all[k] = zeros(6,0)
                         end
