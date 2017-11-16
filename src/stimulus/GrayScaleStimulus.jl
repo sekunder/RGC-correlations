@@ -87,7 +87,7 @@ function frame_image(S::GrayScaleStimulus, indexes)
         indexes = [indexes]
     end
     img = zeros(reverse(S.px)..., length(indexes))
-    for img_idx, stim_idx in enumerate(indexes)
+    for (img_idx, stim_idx) in enumerate(indexes)
         fm = reshape(S.pixel_vals[:,stim_idx], reverse(S.N)...)
         frame = _pixel_values_to_float(fm, S.zerotonegative)
         img[:,:,img_idx] = kron(frame, ones(reverse(S.d)...))
@@ -96,7 +96,7 @@ function frame_image(S::GrayScaleStimulus, indexes)
     # frame = _pixel_values_to_float(fm, S.zerotonegative)
     # return kron(frame, ones(reverse(S.d)...))
     if length(indexes) == 1
-        squeeze(img, 3)
+        img = squeeze(img, 3)
     end
     return img
 end
