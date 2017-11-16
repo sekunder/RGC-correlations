@@ -82,7 +82,7 @@ function CRCNS_collect_entropy(dir=CRCNS_information_dir;
 
     jld_files = filter(x -> endswith(x, ".jld"), readdir(dir))
     if verbose > 0
-        println("CRCNS_collect_entropy: found $(length(jld_files)) in $dir")
+        println("CRCNS_collect_entropy: found $(length(jld_files)) files in $dir")
     end
     # H_1_real = Dict{Int,Vector{Float64}}()
     # H_2_real = Dict{Int,Vector{Float64}}()
@@ -99,25 +99,25 @@ function CRCNS_collect_entropy(dir=CRCNS_information_dir;
             println("CRCNS_collect_entropy: Inspecting file $filename")
         end
         try
-            d = load(joinpath(dir,filename))
-            if haskeys(d, distro_names...)
+            distros = load(joinpath(dir,filename))
+            if haskeys(distros, distro_names...)
                 if verbose > 0
                     print("\tFound distributions. Computing entropies...")
                 end
                 # reminder: the function I keep forgetting is count_ones.
-                index_ints = intersect([keys(d[dname]) for dname in distro_names]...)
+                index_ints = intersect([keys(distros[dname]) for dname in distro_names]...)
                 for index_int in index_ints
                     k = count_ones(index_int)
 
                     if k <= Probability.ISING_METHOD_THRESHOLD
-                        # push!(get!(H_1_real, k, Float64[]), entropy(d["P_1_real"][index_int]))
-                        # push!(get!(H_2_real, k, Float64[]), entropy(d["P_2_real"][index_int]))
-                        # push!(get!(H_N_real, k, Float64[]), entropy(d["P_N_real"][index_int]))
-                        # push!(get!(H_1_sim, k, Float64[]), entropy(d["P_1_sim"][index_int]))
-                        # push!(get!(H_2_sim, k, Float64[]), entropy(d["P_1_sim"][index_int]))
-                        # push!(get!(H_N_sim, k, Float64[]), entropy(d["P_N_sim"][index_int]))
-                        # ents = [entropy(d["P_1_real"][index_int]), entropy(d["P_2_real"][index_int]), entropy(d["P_N_real"][index_int]), entropy(d["P_1_sim"][index_int]), entropy(d["P_1_sim"][index_int]), entropy(d["P_N_sim"][index_int])]
-                        ents = map(entropy, [d[dn][index_int] for dn in distro_names])
+                        # push!(get!(H_1_real, k, Float64[]), entropy(distros["P_1_real"][index_int]))
+                        # push!(get!(H_2_real, k, Float64[]), entropy(distros["P_2_real"][index_int]))
+                        # push!(get!(H_N_real, k, Float64[]), entropy(distros["P_N_real"][index_int]))
+                        # push!(get!(H_1_sim, k, Float64[]), entropy(distros["P_1_sim"][index_int]))
+                        # push!(get!(H_2_sim, k, Float64[]), entropy(distros["P_1_sim"][index_int]))
+                        # push!(get!(H_N_sim, k, Float64[]), entropy(distros["P_N_sim"][index_int]))
+                        # ents = [entropy(distros["P_1_real"][index_int]), entropy(distros["P_2_real"][index_int]), entropy(distros["P_N_real"][index_int]), entropy(distros["P_1_sim"][index_int]), entropy(distros["P_1_sim"][index_int]), entropy(distros["P_N_sim"][index_int])]
+                        ents = map(entropy, [distros[dn][index_int] for dn in distro_names])
                         if !haskey(H_all, k)
                             H_all[k] = zeros(6,0)
                         end
@@ -129,9 +129,30 @@ function CRCNS_collect_entropy(dir=CRCNS_information_dir;
                         print("($index_int),")
                     end
                 end
-                println("done.")
+                if verbose > 0
+                    println("done.")
+                end
             elseif verbose > 0
-                println("\tMissing keys $(join(setdiff(distro_names, keys(d)),", ")), skipping file")
+                # couldn't find all necessary distros
+                println("\tMissing keys $(join(setdiff(distro_names, keys(distros)),", ")), skipping file")
+            end
+            # if we've made it this far, I think I have not changed any of the
+            # dictionaries, just modified the probability distributions
+            # (entropy() has the side effect of storing the value as metadata).
+            # So, I should be able to rewrite the file
+            if verbose > 0
+                print("\tWriting distros (with entropies) to $filename...")
+            end
+            jldopen(joinpath(dir,filename),"w") do file
+                for (dist_name, dist) in distros
+                    write(file, dist_name, dist)
+                    if verbose > 1
+                        print("$dist_name ")
+                    end
+                end
+            end
+            if verbose > 0
+                println("done")
             end
         catch y
             if verbose > 0
