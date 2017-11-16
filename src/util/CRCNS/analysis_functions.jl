@@ -90,7 +90,7 @@ function CRCNS_collect_entropy(dir=CRCNS_information_dir;
     # H_1_sim = Dict{Int,Vector{Float64}}()
     # H_2_sim = Dict{Int,Vector{Float64}}()
     # H_N_sim = Dict{Int,Vector{Float64}}()
-    H_all = Dict{Int,Matrix{Float64}}
+    H_all = Dict{Int,Matrix{Float64}}()
 
     distro_names = ["P_1_real", "P_2_real", "P_N_real", "P_1_sim", "P_2_sim", "P_N_sim"]
 
