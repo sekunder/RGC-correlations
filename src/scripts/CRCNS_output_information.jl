@@ -1,11 +1,11 @@
 
-include("../probability/probability.jl")
-include("../spikes/spikes.jl")
-include("../stimulus/stimulus.jl")
-using Spikes, Stimulus, Probability
-include("../util/constants.jl")
-include("../util/misc.jl")
-include("../util/metadata.jl")
+# include("../probability/probability.jl")
+# include("../spikes/spikes.jl")
+# include("../stimulus/stimulus.jl")
+# using Spikes, Stimulus, Probability
+# include("../util/constants.jl")
+# include("../util/misc.jl")
+# include("../util/metadata.jl")
 include("../util/CRCNS/analysis_functions.jl")
 using JLD
 
@@ -17,6 +17,15 @@ using JLD
 # 2. loop through: sample sizes, number of trials. Fit P_*, compute entropy (if
 # appropriate), add this to a dictionary structure, etc.
 
+# cline_args = process_args(ARGS)
+# n_trials = get!(cline_args,"n_trials",20)
+# verbose = cline_args["v"] ? 1 : get!(cline_args,"verbose",0)
+# dt = cline_args[""]
+cline_args = process_args(ARGS, parse_defaults=Dict("n_trials"=>20, "bin_size"=>10e-3))
+n_trials = cline_args["n_trials"]
+dt = cline_args["bin_size"]
+verbose = cline_args["v"] ? 1 : cline_args["verbose"]
+
 sim_jld_dir = joinpath(CRCNS_STRF_dir, "sim")
 
 sim_jld_files = filter(x -> endswith(x,".jld"), readdir(sim_jld_dir))
@@ -24,7 +33,7 @@ sim_jld_files = filter(x -> endswith(x,".jld"), readdir(sim_jld_dir))
 println("-" ^ 80)
 println("CRCNS_output_information: BEGIN SCRIPT $(now())")
 
-n_trials = length(ARGS) > 0 ? parse(Int, ARGS[1]) : 20
+# n_trials = length(ARGS) > 0 ? parse(Int, ARGS[1]) : 20
 
 for dir in [CRCNS_information_dir]
     if !isdir(dir)
@@ -52,7 +61,7 @@ for sim_file in sim_jld_files
         end
     end
     if rec_idx == 0
-        println("! Found $sim_file, but could not determine recording index.")
+        println("! Found $sim_file, but could not determine recording index. Skipping file")
         continue
     end
     if !isfile(joinpath(CRCNS_data_dir, "$root_name.mat"))
@@ -65,14 +74,17 @@ for sim_file in sim_jld_files
     println("  Loading simulated spikes from $sim_file")
     sim_spikes = load(joinpath(sim_jld_dir, sim_file), "spikes")
     if n_cells(real_spikes) != n_cells(sim_spikes)
-        println("! CRCNS spikes for $(n_cells(real_spikes)) cells, but simulated data for $(n_cells(sim_spikes)). Skipping...")
+        println("! CRCNS spikes for $(n_cells(real_spikes)) cells, but simulated data for $(n_cells(sim_spikes)). Skipping file.")
         continue
     end
 
     # create rasters
-    #TODO maybe try a range of time bins? Most papers used 10ms, and frame_time tends to be ~16ms.
-    sim_STRFs = load(joinpath(sim_jld_dir, sim_file), "STRFs")
-    dt = frame_time(sim_STRFs[1]); sim_STRFs = 0 # hint for garbage collection
+    #maybe try a range of time bins? Most papers used 10ms, and frame_time tends to be ~16ms.
+    # sim_STRFs = load(joinpath(sim_jld_dir, sim_file), "STRFs")
+    # dt = frame_time(sim_STRFs[1]); sim_STRFs = 0 # hint for garbage collection
+
+    # dt is now set at the commandline. Default value is 10ms
+    println("  Computing spike rasters at bin size $(1000dt) ms")
     real_raster = raster(real_spikes, dt)
     sim_raster = raster(sim_spikes, dt)
 
@@ -101,11 +113,7 @@ for sim_file in sim_jld_files
     distros = [P_1_real, P_2_real, P_N_real, P_1_sim, P_2_sim, P_N_sim]
     jldopen(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"), "w") do file
         for sample_size in size_range
-            # TODO check what subsets have already been fit with at least the
-            # current version of the script
 
-            # TODO but in order to do that I'll have to include a version in the
-            # metadata of all the objects? Well, not necessarily.
             index_set = zeros(Int, sample_size)
             for trial = 1:min(n_trials, binomial(n_cells(real_spikes), sample_size))
                 sort!(random_subset!(1:n_cells(real_spikes), index_set))
