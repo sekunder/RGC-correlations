@@ -4,6 +4,11 @@ include("../util/init.jl")
 include("../util/CRCNS/analysis_functions.jl")
 using JLD, PyPlot
 
+if !ispath(CRCNS_plots_dir)
+    println("* Making path $CRCNS_plots_dir")
+    mkpath(CRCNS_plots_dir)
+end
+
 now_time = now()
 datestring = Dates.format(now_time, "YYYYmmdd")
 timestring = Dates.format(now_time, "HHMMSS")
