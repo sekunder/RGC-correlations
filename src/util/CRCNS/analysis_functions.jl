@@ -2,7 +2,7 @@
 # use features from multiple modules.
 
 using JLD
-include("../misc.jl")
+# include("../misc.jl")
 """
     CRCNS_output_STRFs(mat_file, output_dir, rec_idx; kwargs...)
 
@@ -63,3 +63,86 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
     end
     return stim, spikes, spike_hist, STRFs
 end
+
+"""
+    CRCNS_collect_entropy(dir=CRCNS_information_dir; kwargs...)
+
+Convenience function. Loop through the given directory, opening all `.jld` files
+it encounters that contain objects from the `Probability` module. For each index
+set that has a value of `P_*_real` and `P_*_sim` (for `* = 1, 2, N`), it
+computes the entropy of each distribution, then returns `H_all`, a
+`Dict{Int,Matrix{Float64}}` where `H_all[k]` has six rows and some number of
+columns. The rows are, in order, the entropy of `P_1_real`, `P_2_real`,
+`P_N_real`, `P_1_sim`, `P_2_sim`, `P_N_sim`. Each column represents one sample
+from one file.
+
+"""
+function CRCNS_collect_entropy(dir=CRCNS_information_dir;
+    verbose=0, CRCNS_script_version=v"0.2", kwargs...)
+
+    jld_files = filter(x -> endswith(x, ".jld"), readdir(dir))
+    if verbose > 0
+        println("CRCNS_collect_entropy: found $(length(jld_files)) in $dir")
+    end
+    # H_1_real = Dict{Int,Vector{Float64}}()
+    # H_2_real = Dict{Int,Vector{Float64}}()
+    # H_N_real = Dict{Int,Vector{Float64}}()
+    # H_1_sim = Dict{Int,Vector{Float64}}()
+    # H_2_sim = Dict{Int,Vector{Float64}}()
+    # H_N_sim = Dict{Int,Vector{Float64}}()
+    H_all = Dict{Int,Matrix{Float64}}
+
+    distro_names = ["P_1_real", "P_2_real", "P_N_real", "P_1_sim", "P_2_sim", "P_N_sim"]
+
+    for filename in jld_files
+        if verbose > 0
+            println("CRCNS_collect_entropy: Inspecting file $filename")
+        end
+        try
+            d = load(joinpath(dir,filename))
+            if haskeys(d, distro_names...)
+                if verbose > 0
+                    print("\tFound distributions. Computing entropies...")
+                end
+                # reminder: the function I keep forgetting is count_ones.
+                index_ints = intersect([keys(d[dname]) for dname in distro_names]...)
+                for index_int in index_ints
+                    k = count_ones(index_int)
+
+                    if k <= Probability.ISING_METHOD_THRESHOLD
+                        # push!(get!(H_1_real, k, Float64[]), entropy(P_1_real[index_int]))
+                        # push!(get!(H_2_real, k, Float64[]), entropy(P_2_real[index_int]))
+                        # push!(get!(H_N_real, k, Float64[]), entropy(P_N_real[index_int]))
+                        # push!(get!(H_1_sim, k, Float64[]), entropy(P_1_sim[index_int]))
+                        # push!(get!(H_2_sim, k, Float64[]), entropy(P_2_sim[index_int]))
+                        # push!(get!(H_N_sim, k, Float64[]), entropy(P_N_sim[index_int]))
+                        ents = [entropy(P_1_real[index_int]), entropy(P_2_real[index_int]), entropy(P_N_real[index_int]), entropy(P_1_sim[index_int]), entropy(P_2_sim[index_int]), entropy(P_N_sim[index_int])]
+                        if !haskey(H_all, k)
+                            H_all[k] = zeros(6,0)
+                        end
+                        H_all[k] = hcat(H_all[k], ents)
+                        if verobse > 1
+                            print("$index_int,")
+                        end
+                    elseif verbose > 1
+                        print("($index_int),")
+                    end
+                end
+                println("done.")
+            elseif verbose > 0
+                println("\tMissing keys $(join(setdiff(distro_names, keys(d)),", ")), skipping file")
+            end
+        catch y
+            if verbose > 0
+                println("\tError: $y")
+                println("\tskipping file")
+            end
+        end
+    end
+    # return H_1_real, H_2_real, H_N_real, H_1_sim, H_2_sim, H_N_sim
+    return H_all
+end
+#OLD DOCSTRING:  returns `(H_1_real, H_2_real,
+# H_N_real, H_1_sim, H_2_sim, H_N_sim)` where each is a
+# `Dict{Int,Vector{Float64}}`, `H_*[k]` is the list of entropy values for
+# distributions on `k` neurons.
