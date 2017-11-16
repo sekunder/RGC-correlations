@@ -122,7 +122,7 @@ function CRCNS_collect_entropy(dir=CRCNS_information_dir;
                             H_all[k] = zeros(6,0)
                         end
                         H_all[k] = hcat(H_all[k], ents)
-                        if verobse > 1
+                        if verbose > 1
                             print("$index_int,")
                         end
                     elseif verbose > 1
