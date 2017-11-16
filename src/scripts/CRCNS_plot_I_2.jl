@@ -14,6 +14,7 @@ datestring = Dates.format(now_time, "YYYYmmdd")
 timestring = Dates.format(now_time, "HHMMSS")
 
 # plan: collect entropy values.
+println("CRCNS_plot_I_2: Collecting entropy values that have been computed and plotting the resulting information ratios.")
 D = CRCNS_collect_entropy(;verbose=2)
 sorted_keys = sort(collect(keys(D)))
 
@@ -24,6 +25,7 @@ for k in keys(D)
     I_2_sim[k] = (D[k][4,:] - D[k][5,:]) ./ (D[k][4,:] - D[k][6,:])
 end
 
+println("* Creating figure")
 fig = figure("I_2 ratio from available data", tight_layout=true, figsize=(10,10))
 for k in keys(I_2_real)
     scatter(fill(k, length(I_2_real[k])), I_2_real[k], color="red", alpha=0.5, s=10, marker="o")
@@ -40,5 +42,6 @@ xlabel("Sample size")
 ylabel(L"I_2")
 grid("on")
 legend()
+println("  Saving figure to $(joinpath(CRCNS_plots_dir,"I_2_all-$datestring-$timestring.png")))")
 savefig(joinpath(CRCNS_plots_dir,"I_2_all-$datestring-$timestring.png"))
 close(fig)
