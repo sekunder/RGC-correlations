@@ -39,7 +39,7 @@ end
 #### Miscellaneous computations/internal functions
 ################################################################################
 _E_Ising(ID::IsingDistribution, x::Union{Vector{Bool}, BitVector}) = dot(x, -0.5*ID.J*x + ID.theta)
-_get_energies(ID::IsingDistribution) = [_E_Ising(digits(Bool,x,2,n_bits(ID))) for x in 0:(2^n_bits(ID) - 1)]
+_get_energies(ID::IsingDistribution) = [_E_Ising(ID, digits(Bool,x,2,n_bits(ID))) for x in 0:(2^n_bits(ID) - 1)]
 function _get_Z(ID::IsingDistribution)
     if !haskey(ID.cache, :Z)
         if n_bits(ID) > ISING_METHOD_THRESHOLD
@@ -56,18 +56,16 @@ end
 ################################################################################
 function entropy(P::IsingDistribution)
     if !haskey(P.metadata, :entropy)
-        # energies = [-_E_Ising(digits(Bool,x,2,n_bits(P))) for x in 0:]
         energies = _get_energies(P)
-        # P.metadata[:entropy] = log(_get_Z(P)) + sum_kbn([exp(-_E_Ising(digits(Bool,2,x,n_bits(P)))) for x in 0:(2^n_bis(P) - 1)])
+        # P.metadata[:entropy] = log(_get_Z(P)) + sum_kbn([exp(-_E_Ising(P,digits(Bool,2,x,n_bits(P)))) for x in 0:(2^n_bis(P) - 1)])
         P.metadata[:entropy] = log(_get_Z(P)) + sum_kbn(exp.(-energies) .* energies) / _get_Z(P)
     end
     return P.metadata[:entropy]
 end
 function entropy2(P::IsingDistribution)
     if !haskey(P.metadata, :entropy2)
-        # energies = [-_E_Ising(digits(Bool,x,2,n_bits(P))) for x in 0:]
         energies = _get_energies(P)
-        # P.metadata[:entropy] = log(_get_Z(P)) + sum_kbn([exp(-_E_Ising(digits(Bool,2,x,n_bits(P)))) for x in 0:(2^n_bis(P) - 1)])
+        # P.metadata[:entropy] = log(_get_Z(P)) + sum_kbn([exp(-_E_Ising(P,digits(Bool,2,x,n_bits(P)))) for x in 0:(2^n_bis(P) - 1)])
         P.metadata[:entropy2] = log2(_get_Z(P)) + sum_kbn(exp.(-energies) .* energies) / _get_Z(P)
     end
     return P.metadata[:entropy2]
