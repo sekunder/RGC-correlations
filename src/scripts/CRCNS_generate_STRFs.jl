@@ -1,31 +1,31 @@
 
-CRCNS_script_version=v"0.2"
+# CRCNS_script_version=v"0.3"
 # plan: for each mat file, for each recording index:
 # 1. load the stimulus, call CRCNS_output_STRFs to save them to file
 # 2. for each STRF: compute response to stimulus, scale response, generate spike trains using scaled response.
-
+include("../util/init.jl")
 using MAT, JLD
-include("../probability/probability.jl")
-include("../spikes/spikes.jl")
-include("../stimulus/stimulus.jl")
+# include("../probability/probability.jl")
+# include("../spikes/spikes.jl")
+# include("../stimulus/stimulus.jl")
 include("../util/CRCNS/analysis_functions.jl")
 include("../util/nonlinearities.jl")
-include("../util/misc.jl")
-include("../util/constants.jl")
-using Spikes, Stimulus, Probability
+# include("../util/misc.jl")
+# include("../util/constants.jl")
+# using Spikes, Stimulus, Probability
 
-data_dir = joinpath(CRCNS_dir, "Data")
-output_dir_real = joinpath(CRCNS_dir, "analysis", "STRF", "real")
-output_dir_sim = joinpath(CRCNS_dir, "analysis", "STRF", "sim")
+# CRCNS_data_dir = joinpath(CRCNS_dir, "Data")
+output_dir_real = joinpath(CRCNS_STRF_dir, "real")
+output_dir_sim = joinpath(CRCNS_STRF_dir, "sim")
 
-mat_files = filter(x -> endswith(x, ".mat"), readdir(data_dir))
-# mat_files = filter(x -> x == "20080516_R1.mat", readdir(data_dir)) #for debugging
+mat_files = filter(x -> endswith(x, ".mat"), readdir(CRCNS_data_dir))
+# mat_files = filter(x -> x == "20080516_R1.mat", readdir(CRCNS_data_dir)) #for debugging
 real_jld_files = filter(x -> endswith(x, ".jld"), readdir(output_dir_real))
 sim_jld_files = filter(x -> endswith(x, ".jld"), readdir(output_dir_sim))
 
 println("-" ^ 80)
-println("CRCNS_generate_STRFs: BEGIN SCRIPT $(now())")
-for dir in [data_dir, output_dir_real, output_dir_sim]
+println("CRCNS_generate_STRFs $CRCNS_script_version: BEGIN SCRIPT $(now())")
+for dir in [CRCNS_data_dir, output_dir_real, output_dir_sim]
     if !isdir(dir)
         println("* Creating path $dir")
         mkpath(dir)
@@ -33,13 +33,13 @@ for dir in [data_dir, output_dir_real, output_dir_sim]
 end
 println("Computing STRFs for CRCNS data, then generating simulated data by presenting stimulus to those STRFs.")
 println("Preparing to process these files:")
-println(mat_files)
+println("\t$(join(mat_files,"\n\t"))")
 
 for mat_file in mat_files
     println("* Processing file $mat_file")
     # poor planning on my part means I still have to open the damn files here to
     # get the number of recording indexes. Oh well.
-    vars = matread(joinpath(data_dir, mat_file))
+    vars = matread(joinpath(CRCNS_data_dir, mat_file))
     recordings = 1:length(vars["datainfo"]["RecNo"])
     # recordings = [2]
     vars = 0 # just a hint for garbage collecion
@@ -54,9 +54,9 @@ for mat_file in mat_files
             println("  Skipping processing.")
         else
             print("    Computing real STRFs...")
-            # stim = CRCNS_Stimulus(joinpath(CRCNS_dir, data_dir, mat_file), rec_idx)
+            # stim = CRCNS_Stimulus(joinpath(CRCNS_dir, CRCNS_data_dir, mat_file), rec_idx)
             # spike_hist = histogram(spikes, frame)
-            stim, spikes, spike_hist, STRFs = CRCNS_output_STRFs(joinpath(data_dir, mat_file), rec_idx, output_dir_real; CRCNS_script_version=CRCNS_script_version)
+            stim, spikes, spike_hist, STRFs = CRCNS_output_STRFs(joinpath(CRCNS_data_dir, mat_file), rec_idx, output_dir_real; CRCNS_script_version=CRCNS_script_version)
             println("done")
             L = zeros(spike_hist)
             ST_simulated = Vector{Vector{Float64}}(n_cells(spikes))
@@ -81,7 +81,7 @@ for mat_file in mat_files
             end
 
             print("\n    Computing simulated STRFs...")
-            sim_spikes = SpikeTrains(ST_simulated, spikes.I; comment="Simulated spike train for CRCNS data $mat_file, recording index $rec_idx")
+            sim_spikes = SpikeTrains(ST_simulated, spikes.I; comment="Simulated spike train for CRCNS data $mat_file, recording index $rec_idx", CRCNS_script_version=CRCNS_script_version)
             sim_hist = histogram(sim_spikes, frame_time(stim); N_bins=n_frames(stim))
             sim_STRFs = compute_STRFs(sim_hist, stim)
             println("done")
