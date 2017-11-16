@@ -15,6 +15,7 @@ timestring = Dates.format(now_time, "HHMMSS")
 
 # plan: collect entropy values.
 D = CRCNS_collect_entropy(;verbose=2)
+sorted_keys = sort(collect(keys(D)))
 
 I_2_real = Dict{Int,Vector{Float64}}()
 I_2_sim = Dict{Int,Vector{Float64}}()
@@ -28,8 +29,10 @@ for k in keys(I_2_real)
     scatter(fill(k, length(I_2_real[k])), I_2_real[k], color="red", alpha=0.5, s=10, marker="o")
     scatter(fill(k, length(I_2_sim[k])), I_2_sim[k], color="blue", alpha=0.5, s=10, marker="o")
 end
-plot(sort(keys(I_2_real)), [mean(I_2_real[k]) for k in sort(keys(I_2_real))], label="Real", color="red")
-plot(sort(keys(I_2_sim)), [mean(I_2_sim[k]) for k in sort(keys(I_2_sim))], label="Simulated", color="blue")
+# plot(sort(keys(I_2_real)), [mean(I_2_real[k]) for k in sort(keys(I_2_real))], label="Real", color="red")
+# plot(sort(keys(I_2_sim)), [mean(I_2_sim[k]) for k in sort(keys(I_2_sim))], label="Simulated", color="blue")
+plot(sorted_keys, [mean(I_2_real[k]) for k in sorted_keys], label="mean Real", color="red")
+plot(sorted_keys, [mean(I_2_sim[k]) for k in sorted_keys], label="mean Sim", color="blue")
 title("Information ratio I_2")
 xticks(5:5:40)
 yticks(0.0:0.1:1.0)
