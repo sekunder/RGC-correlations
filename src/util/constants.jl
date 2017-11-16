@@ -6,4 +6,4 @@ CRCNS_STRF_dir = joinpath(CRCNS_analysis_dir, "STRF")
 CRCNS_information_dir = joinpath(CRCNS_analysis_dir, "information")
 CRCNS_plots_dir = joinpath(CRCNS_analysis_dir, "plots")
 
-CRCNS_script_version = v"0.2"
+CRCNS_script_version = v"0.3"
