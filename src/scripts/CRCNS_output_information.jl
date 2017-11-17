@@ -1,11 +1,6 @@
 
-# include("../probability/probability.jl")
-# include("../spikes/spikes.jl")
-# include("../stimulus/stimulus.jl")
-# using Spikes, Stimulus, Probability
-# include("../util/constants.jl")
-# include("../util/misc.jl")
-# include("../util/metadata.jl")
+
+include("../util/init.jl")
 include("../util/CRCNS/analysis_functions.jl")
 using JLD
 
@@ -17,13 +12,10 @@ using JLD
 # 2. loop through: sample sizes, number of trials. Fit P_*, compute entropy (if
 # appropriate), add this to a dictionary structure, etc.
 
-# cline_args = process_args(ARGS)
-# n_trials = get!(cline_args,"n_trials",20)
-# verbose = cline_args["v"] ? 1 : get!(cline_args,"verbose",0)
-# dt = cline_args[""]
 cline_args = process_args(ARGS, parse_defaults=Dict("n_trials"=>20, "bin_size"=>10e-3))
 n_trials = cline_args["n_trials"]
-dt = cline_args["bin_size"]
+# To make life easy, I want to be able to say julia /script 10 to do 10ms
+dt = isa(cline_args["bin_size"], Integer) ? cline_args["bin_size"] / 1000 : cline_args["bin_size"]
 verbose = cline_args["v"] ? 1 : cline_args["verbose"]
 
 sim_jld_dir = joinpath(CRCNS_STRF_dir, "sim")
@@ -32,8 +24,6 @@ sim_jld_files = filter(x -> endswith(x,".jld"), readdir(sim_jld_dir))
 
 println("-" ^ 80)
 println("CRCNS_output_information: BEGIN SCRIPT $(now())")
-
-# n_trials = length(ARGS) > 0 ? parse(Int, ARGS[1]) : 20
 
 for dir in [CRCNS_information_dir]
     if !isdir(dir)
@@ -57,7 +47,7 @@ for sim_file in sim_jld_files
         if isa(y, ArgumentError)
             rec_idx = 0
         else
-            throw(y)
+            rethrow(y)
         end
     end
     if rec_idx == 0
@@ -77,78 +67,83 @@ for sim_file in sim_jld_files
         println("! CRCNS spikes for $(n_cells(real_spikes)) cells, but simulated data for $(n_cells(sim_spikes)). Skipping file.")
         continue
     end
+    if n_cells(real_spikes) < 5
+        println("! Spikes for too few ($(n_cells(real_spikes))) cells. Skipping file.")
+        continue
+    end
 
     # create rasters
-    #maybe try a range of time bins? Most papers used 10ms, and frame_time tends to be ~16ms.
-    # sim_STRFs = load(joinpath(sim_jld_dir, sim_file), "STRFs")
-    # dt = frame_time(sim_STRFs[1]); sim_STRFs = 0 # hint for garbage collection
 
     # dt is now set at the commandline. Default value is 10ms
     println("  Computing spike rasters at bin size $(1000dt) ms")
     real_raster = raster(real_spikes, dt)
     sim_raster = raster(sim_spikes, dt)
 
-    # decide sample size ranges. I think 5:5:40 is about right, intersected with 1:N_neurons, then union N_neurons
-    size_range = sort!(union(intersect(1:n_cells(real_spikes), 5:5:40), n_cells(real_spikes)))
+    # gonna try only multiples of 5
+    size_range = intersect(1:n_cells(real_spikes), 5:5:40)
     println("  Preparing to fit models to subsamples of sizes $(join(size_range, ", "))")
     # From what I've seen in the JLD docs, there's no "append" mode. So first,
     # we have to load the existing data from the jld file, if it exists.
-    P_1_real = Dict{Int, BernoulliCodeDistribution}()
-    P_2_real = Dict{Int, IsingDistribution}()
-    P_N_real = Dict{Int, DataDistribution}()
-    P_1_sim = Dict{Int, BernoulliCodeDistribution}()
-    P_2_sim = Dict{Int, IsingDistribution}()
-    P_N_sim = Dict{Int, DataDistribution}()
+
+    distros = Dict{String,AbstractBinaryVectorDistribution}()
     if isfile(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"))
         print("  Found $root_name-$rec_idx.jld. Loading existing distributions...")
-        P_1_real = load(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"), "P_1_real")
-        P_2_real = load(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"), "P_2_real")
-        P_N_real = load(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"), "P_N_real")
-        P_1_sim = load(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"), "P_1_sim")
-        P_2_sim = load(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"), "P_2_sim")
-        P_N_sim = load(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"), "P_N_sim")
+        distros = load(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"))
         println("done.")
     end
-    distro_names = ["P_1_real", "P_2_real", "P_N_real", "P_1_sim", "P_2_sim", "P_N_sim"]
-    distros = [P_1_real, P_2_real, P_N_real, P_1_sim, P_2_sim, P_N_sim]
+    # distro_names = ["P_1_real", "P_2_real", "P_N_real", "P_1_sim", "P_2_sim", "P_N_sim"]
+    # distros = [P_1_real, P_2_real, P_N_real, P_1_sim, P_2_sim, P_N_sim]
     jldopen(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"), "w") do file
         for sample_size in size_range
-
             index_set = zeros(Int, sample_size)
             for trial = 1:min(n_trials, binomial(n_cells(real_spikes), sample_size))
                 sort!(random_subset!(1:n_cells(real_spikes), index_set))
-                index_int = index_set_to_int(index_set)
-                print("    size = $sample_size, trial $trial: [$(join(index_set,","))] Real(")
-                if !haskey(P_1_real, index_int) || metadata(P_1_real[index_int], :CRCNS_script_version, v"0.1") < CRCNS_script_version
-                    # short-circuit operator!
-                    P_1_real[index_int] = first_order_model(real_raster, index_set; CRCNS_script_version=CRCNS_script_version)
-                    print("P_1,")
+                III = index_set_to_int(index_set)
+                for XXX in ["1","2","N"]
+                    for YYY in ["real","sim"]
+                        distro_name = "P_$(XXX)_$(YYY)_$III"
+                        if !haskey(distros, distro_name) || metadata(distros[distro_name], :CRCNS_script_version, v"0.1") < CRCNS_script_version
+                            if XXX == "1"
+                                P = first_order_model(YYY == "real" ? real_raster : sim_raster, index_set, CRCNS_script_version=CRCNS_script_version, verbose=verbose, )
+                            elseif XXX = "2"
+                            else
+                            end
+                        end
+                    end
                 end
-                if !haskey(P_2_real, index_int) || metadata(P_2_real[index_int], :CRCNS_script_version, v"0.1") < CRCNS_script_version
-                    # short-circuit operator!
-                    P_2_real[index_int] = second_order_model(real_raster, index_set; CRCNS_script_version=CRCNS_script_version)
-                    print("P_2,")
-                end
-                if !haskey(P_N_real, index_int) || metadata(P_N_real[index_int], :CRCNS_script_version, v"0.1") < CRCNS_script_version
-                    # short-circuit operator!
-                    P_N_real[index_int] = data_model(real_raster, index_set; CRCNS_script_version=CRCNS_script_version)
-                    print("P_N")
-                end
-                print(") Sim(")
 
-                if !haskey(P_1_sim, index_int) || metadata(P_1_sim[index_int], :CRCNS_script_version, v"0.1") < CRCNS_script_version
-                    P_1_sim[index_int] = first_order_model(sim_raster, index_set; CRCNS_script_version=CRCNS_script_version)
-                    print("P_1,")
-                end
-                if !haskey(P_2_sim, index_int) || metadata(P_2_sim[index_int], :CRCNS_script_version, v"0.1") < CRCNS_script_version
-                    P_2_sim[index_int] = second_order_model(sim_raster, index_set; CRCNS_script_version=CRCNS_script_version)
-                    print("P_2,")
-                end
-                if !haskey(P_N_sim, index_int) || metadata(P_N_sim[index_int], :CRCNS_script_version, v"0.1") < CRCNS_script_version
-                    P_N_sim[index_int] = data_model(sim_raster, index_set; CRCNS_script_version=CRCNS_script_version)
-                    print("P_N")
-                end
-                println(")")
+
+                # print("    size = $sample_size, trial $trial: [$(join(index_set,","))] Real(")
+                # if !haskey(P_1_real, III) || metadata(P_1_real[III], :CRCNS_script_version, v"0.1") < CRCNS_script_version
+                #     # short-circuit operator!
+                #     P_1_real[III] = first_order_model(real_raster, index_set; CRCNS_script_version=CRCNS_script_version)
+                #     print("P_1,")
+                # end
+                # if !haskey(P_2_real, III) || metadata(P_2_real[III], :CRCNS_script_version, v"0.1") < CRCNS_script_version
+                #     # short-circuit operator!
+                #     P_2_real[III] = second_order_model(real_raster, index_set; CRCNS_script_version=CRCNS_script_version)
+                #     print("P_2,")
+                # end
+                # if !haskey(P_N_real, III) || metadata(P_N_real[III], :CRCNS_script_version, v"0.1") < CRCNS_script_version
+                #     # short-circuit operator!
+                #     P_N_real[III] = data_model(real_raster, index_set; CRCNS_script_version=CRCNS_script_version)
+                #     print("P_N")
+                # end
+                # print(") Sim(")
+                #
+                # if !haskey(P_1_sim, III) || metadata(P_1_sim[III], :CRCNS_script_version, v"0.1") < CRCNS_script_version
+                #     P_1_sim[III] = first_order_model(sim_raster, index_set; CRCNS_script_version=CRCNS_script_version)
+                #     print("P_1,")
+                # end
+                # if !haskey(P_2_sim, III) || metadata(P_2_sim[III], :CRCNS_script_version, v"0.1") < CRCNS_script_version
+                #     P_2_sim[III] = second_order_model(sim_raster, index_set; CRCNS_script_version=CRCNS_script_version)
+                #     print("P_2,")
+                # end
+                # if !haskey(P_N_sim, III) || metadata(P_N_sim[III], :CRCNS_script_version, v"0.1") < CRCNS_script_version
+                #     P_N_sim[III] = data_model(sim_raster, index_set; CRCNS_script_version=CRCNS_script_version)
+                #     print("P_N")
+                # end
+                # println(")")
             end
         end
         # file["P_1_real"] = P_1_real
