@@ -12,11 +12,12 @@ using JLD
 # 2. loop through: sample sizes, number of trials. Fit P_*, compute entropy (if
 # appropriate), add this to a dictionary structure, etc.
 
-cline_args = process_args(ARGS, parse_defaults=Dict("n_trials"=>20, "bin_size"=>10e-3))
+cline_args = process_args(ARGS, parse_defaults=Dict("n_trials"=>20, "bin_size"=>10e-3, "maxtime"=>0))
 n_trials = cline_args["n_trials"]
 # To make life easy, I want to be able to say julia /script 10 to do 10ms
 dt = isa(cline_args["bin_size"], Integer) ? cline_args["bin_size"] / 1000 : cline_args["bin_size"]
 verbose = cline_args["v"] ? 1 : cline_args["verbose"]
+maxtime = cline_args["maxtime"]
 
 sim_jld_dir = joinpath(CRCNS_STRF_dir, "sim")
 
@@ -117,7 +118,7 @@ for sim_file in sim_jld_files
                             elseif XXX == "2"
                                 P = second_order_model(YYY == "real" ? real_raster : sim_raster, index_set;
                                     CRCNS_script_version=CRCNS_script_version, verbose=verbose,
-                                    source="CRCNS/$root_name-$rec_idx ($YYY)", bin_size=dt)
+                                    source="CRCNS/$root_name-$rec_idx ($YYY)", bin_size=dt, maxtime=maxtime)
                             else
                                 P = data_model(YYY == "real" ? real_raster : sim_raster, index_set;
                                     CRCNS_script_version=CRCNS_script_version, verbose=verbose,

@@ -134,6 +134,9 @@ function _NLopt_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
     if haskey(dkwargs, :maxeval)
         maxeval!(opt_Ising, pop!(dkwargs,:maxeval))
     end
+    if haskey(dkwargs, :maxtime)
+        maxtime!(opt_Ising, pop!(dkwargs,:maxtime))
+    end
     if verbose
         println("second_order_model[NLopt/$alg]: running optimization")
         # println("\topt object: $(opt_Ising)") # turns out this just prints "Opt(:algorithm, N_vars)"
