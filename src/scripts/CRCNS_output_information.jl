@@ -23,7 +23,7 @@ sim_jld_dir = joinpath(CRCNS_STRF_dir, "sim")
 sim_jld_files = filter(x -> endswith(x,".jld"), readdir(sim_jld_dir))
 
 println("-" ^ 80)
-println("CRCNS_output_information: BEGIN SCRIPT $(now())")
+println("CRCNS_output_information $CRCNS_script_version: BEGIN SCRIPT $(now())")
 
 for dir in [CRCNS_information_dir]
     if !isdir(dir)
