@@ -99,63 +99,42 @@ for sim_file in sim_jld_files
             for trial = 1:min(n_trials, binomial(n_cells(real_spikes), sample_size))
                 sort!(random_subset!(1:n_cells(real_spikes), index_set))
                 III = index_set_to_int(index_set)
+                println("    size = $sample_size, trial $trial: [$(join(index_set,","))]")
+                print("      Writing to $root_name-$rec_idx.jld: ")
                 for XXX in ["1","2","N"]
                     for YYY in ["real","sim"]
                         distro_name = "P_$(XXX)_$(YYY)_$III"
                         if !haskey(distros, distro_name) || metadata(distros[distro_name], :CRCNS_script_version, v"0.1") < CRCNS_script_version
+                            # sometimes, even though a conditional statement
+                            # *must* define a variable, julia complains at me
+                            # because it thinks that variable is not defined.
+                            # So, just in case, I'm doing this dumb shit.
+                            P = 0
                             if XXX == "1"
-                                P = first_order_model(YYY == "real" ? real_raster : sim_raster, index_set, CRCNS_script_version=CRCNS_script_version, verbose=verbose, )
+                                P = first_order_model(YYY == "real" ? real_raster : sim_raster, index_set;
+                                    CRCNS_script_version=CRCNS_script_version, verbose=verbose,
+                                    source="CRCNS/$root_name-$rec_idx ($YYY)", bin_size=dt)
                             elseif XXX = "2"
+                                P = second_order_model(YYY == "real" ? real_raster : sim_raster, index_set;
+                                    CRCNS_script_version=CRCNS_script_version, verbose=verbose,
+                                    source="CRCNS/$root_name-$rec_idx ($YYY)", bin_size=dt)
                             else
+                                P = data_model(YYY == "real" ? real_raster : sim_raster, index_set;
+                                    CRCNS_script_version=CRCNS_script_version, verbose=verbose,
+                                    source="CRCNS/$root_name-$rec_idx ($YYY)", bin_size=dt)
                             end
+                            write(file, distro_name, P)
+                            print("$YYY/$XXX,")
                         end
                     end
                 end
-
-
-                # print("    size = $sample_size, trial $trial: [$(join(index_set,","))] Real(")
-                # if !haskey(P_1_real, III) || metadata(P_1_real[III], :CRCNS_script_version, v"0.1") < CRCNS_script_version
-                #     # short-circuit operator!
-                #     P_1_real[III] = first_order_model(real_raster, index_set; CRCNS_script_version=CRCNS_script_version)
-                #     print("P_1,")
-                # end
-                # if !haskey(P_2_real, III) || metadata(P_2_real[III], :CRCNS_script_version, v"0.1") < CRCNS_script_version
-                #     # short-circuit operator!
-                #     P_2_real[III] = second_order_model(real_raster, index_set; CRCNS_script_version=CRCNS_script_version)
-                #     print("P_2,")
-                # end
-                # if !haskey(P_N_real, III) || metadata(P_N_real[III], :CRCNS_script_version, v"0.1") < CRCNS_script_version
-                #     # short-circuit operator!
-                #     P_N_real[III] = data_model(real_raster, index_set; CRCNS_script_version=CRCNS_script_version)
-                #     print("P_N")
-                # end
-                # print(") Sim(")
-                #
-                # if !haskey(P_1_sim, III) || metadata(P_1_sim[III], :CRCNS_script_version, v"0.1") < CRCNS_script_version
-                #     P_1_sim[III] = first_order_model(sim_raster, index_set; CRCNS_script_version=CRCNS_script_version)
-                #     print("P_1,")
-                # end
-                # if !haskey(P_2_sim, III) || metadata(P_2_sim[III], :CRCNS_script_version, v"0.1") < CRCNS_script_version
-                #     P_2_sim[III] = second_order_model(sim_raster, index_set; CRCNS_script_version=CRCNS_script_version)
-                #     print("P_2,")
-                # end
-                # if !haskey(P_N_sim, III) || metadata(P_N_sim[III], :CRCNS_script_version, v"0.1") < CRCNS_script_version
-                #     P_N_sim[III] = data_model(sim_raster, index_set; CRCNS_script_version=CRCNS_script_version)
-                #     print("P_N")
-                # end
-                # println(")")
+                println()
             end
         end
-        # file["P_1_real"] = P_1_real
-        # file["P_2_real"] = P_2_real
-        # file["P_N_real"] = P_N_real
-        # file["P_1_sim"] = P_1_sim
-        # file["P_2_sim"] = P_2_sim
-        # file["P_N_sim"] = P_N_sim
-        println("  Writing to file $(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"))")
-        for (n, v) in zip(distro_names, distros)
-            write(file, n, v)
-        end
+        # println("  Writing to file $(joinpath(CRCNS_information_dir, "$root_name-$rec_idx.jld"))")
+        # for (n, v) in zip(distro_names, distros)
+        #     write(file, n, v)
+        # end
     end
 end
 
