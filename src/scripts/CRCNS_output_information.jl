@@ -123,6 +123,9 @@ for sim_file in sim_jld_files
                                     CRCNS_script_version=CRCNS_script_version, verbose=verbose,
                                     source="CRCNS/$root_name-$rec_idx ($YYY)", bin_size=dt)
                             end
+                            if n_bits(P) <= Probability.ISING_METHOD_THRESHOLD
+                                entropy(P)
+                            end
                             distros[distro_name] = P
                             write(file, distro_name, P)
                             print("$YYY/$XXX,")
