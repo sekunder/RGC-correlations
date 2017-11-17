@@ -15,7 +15,7 @@ using JLD
 cline_args = process_args(ARGS, parse_defaults=Dict("n_trials"=>20, "bin_size"=>10e-3, "maxtime"=>0))
 n_trials = cline_args["n_trials"]
 # To make life easy, I want to be able to say julia /script 10 to do 10ms
-dt = isa(cline_args["bin_size"], Integer) ? cline_args["bin_size"] / 1000 : cline_args["bin_size"]
+bin_size = isa(cline_args["bin_size"], Integer) ? cline_args["bin_size"] / 1000 : cline_args["bin_size"]
 verbose = cline_args["v"] ? 1 : cline_args["verbose"]
 maxtime = cline_args["maxtime"]
 
@@ -78,10 +78,10 @@ for sim_file in sim_jld_files
 
     # create rasters
 
-    # dt is now set at the commandline. Default value is 10ms
-    println("  Computing spike rasters at bin size $(1000dt) ms")
-    real_raster = raster(real_spikes, dt)
-    sim_raster = raster(sim_spikes, dt)
+    # bin_size is now set at the commandline. Default value is 10ms
+    println("  Computing spike rasters at bin size $(1000bin_size) ms")
+    real_raster = raster(real_spikes, bin_size)
+    sim_raster = raster(sim_spikes, bin_size)
 
     # gonna try only multiples of 5
     size_range = intersect(1:n_cells(real_spikes), 5:5:40)
@@ -117,15 +117,15 @@ for sim_file in sim_jld_files
                             if XXX == "1"
                                 P = first_order_model(YYY == "real" ? real_raster : sim_raster, index_set;
                                     CRCNS_script_version=CRCNS_script_version, verbose=verbose,
-                                    source="CRCNS/$root_name-$rec_idx ($YYY)", bin_size=dt)
+                                    source="CRCNS/$root_name-$rec_idx ($YYY)", bin_size=bin_size)
                             elseif XXX == "2"
                                 P = second_order_model(YYY == "real" ? real_raster : sim_raster, index_set;
                                     CRCNS_script_version=CRCNS_script_version, verbose=verbose,
-                                    source="CRCNS/$root_name-$rec_idx ($YYY)", bin_size=dt, maxtime=maxtime)
+                                    source="CRCNS/$root_name-$rec_idx ($YYY)", bin_size=bin_size, maxtime=maxtime)
                             else
                                 P = data_model(YYY == "real" ? real_raster : sim_raster, index_set;
                                     CRCNS_script_version=CRCNS_script_version, verbose=verbose,
-                                    source="CRCNS/$root_name-$rec_idx ($YYY)", bin_size=dt)
+                                    source="CRCNS/$root_name-$rec_idx ($YYY)", bin_size=bin_size)
                             end
                             if n_bits(P) <= Probability.ISING_METHOD_THRESHOLD
                                 entropy(P)
