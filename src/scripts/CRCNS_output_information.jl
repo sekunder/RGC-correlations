@@ -33,7 +33,10 @@ for dir in [CRCNS_information_dir]
     end
 end
 
-println("Loading simulated and real spikes, then fitting P_1, P_2 to subsamples of the data.")
+println("Loading simulated and real spikes, then fitting P_1, P_2 to subsamples of the data, using bin size $bin_size s")
+if maxtime > 0
+    println("NLopt maxtime = $maxtime")
+end
 println("Will run $n_trials trials for each sample size")
 println("Will write output to $CRCNS_information_dir")
 
