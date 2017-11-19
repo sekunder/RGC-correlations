@@ -74,6 +74,7 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
         vmax = map(maximum, image_arrays)
     end
 
+    success = false
     status = []
 
     try
