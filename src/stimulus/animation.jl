@@ -78,11 +78,20 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
     status = []
 
     try
+        if verbose > 0
+            println("animated_gif: Making path $temp_dir")
+        end
         mkpath(temp_dir)
 
         # for frame_idx in 1:length(frame_range)
+        if verbose > 0
+            println("animated_gif: Generating individual frames")
+            if verbose > 1
+                print("animated_gif: [")
+            end
+        end
         for (frame_idx, frame_number) in enumerate(frame_range)
-            frame_filename = "$fname_root-" * @sprintf("%04d",idx) * ".gif"
+            frame_filename = "$fname_root-" * @sprintf("%04d",frame_idx) * ".gif"
 
             fig = figure("Frame $frame_idx", tight_layout=true)
             # for stim_idx in 1:length(image_arrays)
@@ -104,18 +113,43 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
             end
             savefig(joinpath(temp_dir, frame_filename))
             close(fig)
+            if verbose > 1
+                print(".")
+            end
+        end
+        if verbose > 1
+            println("]")
         end
 
         # Now, let's do a system call to use convert
+        if verbose > 0
+            print("animated_gif: Running convert...")
+        end
         convert_cmd = `convert -delay $frame_time_hundredths -loop $loop $(joinpath(temp_dir,fname_root))-*.gif $gif_filename`
         run(convert_cmd)
+        if verbose > 0
+            println("done.")
+        end
         success = true
     catch except
+        if verbose > 0
+            println()
+            println("animated_gif: Encountered exception(s), beginning clean up...")
+        end
         success = false
         push!(status, except)
     finally
+        if verbose > 0
+            print("animated_gif: Cleaning up. ")
+        end
         close("all")
+        if verbose > 0
+            print("Closed figures. ")
+        end
         rm(joinpath(floc, fname_root), force=true, recursive=true)
+        if verbose > 0
+            println("Removed directory $(joinpath(floc, fname_root))")
+        end
     end
     return success, status
 end
