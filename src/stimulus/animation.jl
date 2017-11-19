@@ -39,7 +39,7 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
     #### Get animation properties
     ########################################
     start_frame = pop!(dkwargs, :start_frame, 1)
-    end_frame = pop!(dkwargs, :end_frame, minimum(map(n_frames,stimulus))))
+    end_frame = pop!(dkwargs, :end_frame, minimum(map(n_frames,stimulus)))
     frame_range = pop!(dkwargs, :frame_range, start_frame:end_frame)
     loop = pop!(dkwargs, :loop, 0)
     # Framerate: in order, check for :fps, :frame_time_s
