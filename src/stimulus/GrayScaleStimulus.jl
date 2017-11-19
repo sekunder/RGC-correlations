@@ -67,7 +67,7 @@ interprets `t` as seconds since `S.onset`, otherwise interprets as absolute
 time.
 
 """
-time_to_index(S::GrayScaleStimulus, t::Float64, relative_time::Bool=false) = 1 + floor(Int, (relative_time ? t - S.onset : t)/frame_time(S))
+time_to_index(S::GrayScaleStimulus, t::Float64, relative_time::Bool=false) = 1 + floor(Int, (relative_time ? t : t - S.onset)/frame_time(S))
 
 """
     index_to_time(S, idx, relative_time=false)
@@ -76,7 +76,7 @@ The time at which frame number `idx` is displayed on screen, with the first
 frame appearing at time `S.onset` (or `0.0` if `relative_time=true`)
 
 """
-index_to_time(S::GrayScaleStimulus, idx::Integer, relative_time::Bool=false) = (idx - 1) * frame_time(S) + (relative_time ? S.onset : 0.0)
+index_to_time(S::GrayScaleStimulus, idx::Integer, relative_time::Bool=false) = (idx - 1) * frame_time(S) + (relative_time ? 0.0 : S.onset)
 
 _pixel_values_to_float(v::BitArray, negative::Bool) = negative ? (-1.0) .^ (.!v) : Matrix{Float64}(v)
 _pixel_values_to_float(v::Array{UInt8}, negative::Bool) = _pixel_values_to_float(v / 255.0, negative)
