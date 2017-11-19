@@ -31,6 +31,7 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
     fname_root = remove_extension(basename(filename))
     temp_dir = joinpath(floc, fname_root, "temp")
     gif_filename = joinpath(floc, fname_root * ".gif")
+    intermediate_extension = ".tif" # since apparently pyplot can't write GIFs
 
     dkwargs = Dict(kwargs)
 
@@ -91,7 +92,7 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
             end
         end
         for (frame_idx, frame_number) in enumerate(frame_range)
-            frame_filename = "$fname_root-" * @sprintf("%04d",frame_idx) * ".gif"
+            frame_filename = "$fname_root-" * @sprintf("%04d",frame_idx) * intermediate_extension
 
             fig = figure("Frame $frame_idx", tight_layout=true)
             # for stim_idx in 1:length(image_arrays)
@@ -125,7 +126,7 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
         if verbose > 0
             print("animated_gif: Running convert...")
         end
-        convert_cmd = `convert -delay $frame_time_hundredths -loop $loop $(joinpath(temp_dir,fname_root))-*.gif $gif_filename`
+        convert_cmd = `convert -delay $frame_time_hundredths -loop $loop $(joinpath(temp_dir,fname_root))-*$intermediate_extension $gif_filename`
         run(convert_cmd)
         if verbose > 0
             println("done.")
