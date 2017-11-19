@@ -45,6 +45,8 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
     # Framerate: in order, check for :fps, :frame_time_s
     fps = pop!(dkwargs, :fps, 60)
     frame_time_s = pop!(dkwargs, :frame_time_s, round(Int,1/fps))
+    # since frame_time_s is ultimately the winner, overwrite fps
+    fps = 1/frame_time_s
     frame_time_hundredths = round(Int,100frame_time_s)
 
     ########################################
@@ -86,7 +88,7 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
 
         # for frame_idx in 1:length(frame_range)
         if verbose > 0
-            println("animated_gif: Generating individual frames")
+            println("animated_gif: Generating individual frames. Expecting $(length(frame_range)) frames at " * @sprintf("%2.1f",fps) * " fps")
             if verbose > 1
                 print("animated_gif: [")
             end
