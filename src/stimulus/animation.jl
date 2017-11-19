@@ -44,7 +44,7 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
     loop = pop!(dkwargs, :loop, 0)
     # Framerate: in order, check for :fps, :frame_time_s
     fps = pop!(dkwargs, :fps, 60)
-    frame_time_s = pop!(dkwargs, :frame_time_s, round(Int,1/fps))
+    frame_time_s = pop!(dkwargs, :frame_time_s, 1/fps)
     # since frame_time_s is ultimately the winner, overwrite fps
     fps = 1/frame_time_s
     frame_time_hundredths = round(Int,100frame_time_s)
