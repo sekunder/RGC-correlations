@@ -109,7 +109,7 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
                 yticks()
 
                 # for now, xlabel is "t = X s"
-                xlabel("t = " * @sprintf("%0.3f", index_to_time(frame_idx)) * " s")
+                xlabel("t = " * @sprintf("%0.3f", index_to_time(S, frame_number)) * " s")
             end
             savefig(joinpath(temp_dir, frame_filename))
             close(fig)
