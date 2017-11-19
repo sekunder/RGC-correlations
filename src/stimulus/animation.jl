@@ -54,15 +54,6 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
     cbar = pop!(dkwargs, :colorbar, true)
     tight = pop!(dkwargs, :tight_layout, true)
     normalize = pop!(dkwargs, :normalize, false)
-    if normalize
-        # normalize across stimuli as well as across frames
-        vmin = fill(minimum(map(minimum,image_arrays)), size(image_arrays))
-        vmax = fill(maximum(map(maximum,image_arrays)), size(image_arrays))
-    else
-        # normalize frames so that a given stimulus uses the same range for each frame.
-        vmin = map(minimum, image_arrays)
-        vmax = map(maximum, image_arrays)
-    end
     layout_x = ceil(Int, sqrt(length(stimulus)))
     layout_y = ceil(Int, sqrt(length(stimulus)))
     titles = pop!(dkwargs, :titles, ["Stimulus $i" for i in 1:length(stimulus)])
@@ -72,6 +63,16 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
     ########################################
     # TODO this is dangerous when frame_range is large!
     image_arrays = [frame_image(S, frame_range) for S in stimulus]
+
+    if normalize
+        # normalize across stimuli as well as across frames
+        vmin = fill(minimum(map(minimum,image_arrays)), size(image_arrays))
+        vmax = fill(maximum(map(maximum,image_arrays)), size(image_arrays))
+    else
+        # normalize frames so that a given stimulus uses the same range for each frame.
+        vmin = map(minimum, image_arrays)
+        vmax = map(maximum, image_arrays)
+    end
 
     status = []
 
