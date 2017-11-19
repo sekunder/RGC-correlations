@@ -58,7 +58,7 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
     tight = pop!(dkwargs, :tight_layout, true)
     normalize = pop!(dkwargs, :normalize, false)
     layout_x = ceil(Int, sqrt(length(stimulus)))
-    layout_y = ceil(Int, sqrt(length(stimulus)))
+    layout_y = ceil(Int, length(stimulus)/layout_x)
     titles = pop!(dkwargs, :titles, ["Stimulus $i" for i in 1:length(stimulus)])
 
     ########################################
@@ -126,7 +126,7 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
 
         # Now, let's do a system call to use convert
         if verbose > 0
-            print("animated_gif: Running convert...")
+            print("animated_gif: Running `convert`...")
         end
         convert_cmd = `convert -delay $frame_time_hundredths -loop $loop $(joinpath(temp_dir,fname_root))-*$intermediate_extension $(joinpath(floc,gif_filename))`
         run(convert_cmd)
