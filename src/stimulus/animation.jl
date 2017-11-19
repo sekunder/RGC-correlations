@@ -17,8 +17,8 @@ characters in `filename`, make sure it ends with `.gif`
 
 Returns `success, status` where `success` is a boolean indicated success or
 failure of the process to produce an animated gif, and `status` is an array of
-strings representing status messages produced throughout (e.g. warnings about
-which frames got skipped, that sort of thing).
+strings and `Exception`s representing status messages produced throughout (e.g.
+warnings about which frames got skipped, that sort of thing).
 
 """
 function animated_gif(stimulus...; filename="default.gif", verbose=0,
@@ -30,9 +30,10 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
     temp_dir = joinpath(floc, fname_root, "temp")
     gif_filename = joinpath(floc, fname_root * ".gif")
 
+    # TODO this is dangerous when frame_range is large!
     image_arrays = [frame_image(S, frame_range) for S in stimulus]
 
-    status = String[]
+    status = []
 
     start_frame = pop!(dkwargs, :start_frame, 1)
     end_frame = pop!(dkwargs, :end_frame, 10)
@@ -41,11 +42,15 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
     cmap = pop!(dkwargs, :cmap, "gray")
     aspect = pop!(dkwargs, :aspect, "equal")
     cbar = pop!(dkwargs, :colorbar, true)
+    tight = pop!(dkwargs, :tight_layout, true)
+
     normalize = pop!(dkwargs, :normalize, false)
     if normalize
+        # normalize across stimuli as well as across frames
         vmin = fill(minimum(map(minimum,image_arrays)), size(image_arrays))
         vmax = fill(maximum(map(maximum,image_arrays)), size(image_arrays))
     else
+        # normalize frames so that a given stimulus uses the same range for each frame.
         vmin = map(minimum, image_arrays)
         vmax = map(maximum, image_arrays)
     end
@@ -53,45 +58,44 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
     layout_x = ceil(Int, sqrt(length(stimulus)))
     layout_y = ceil(Int, sqrt(length(stimulus)))
 
-    subplot_titles = pop!(dkwargs, :subplot_titles, ["Stimulus $i" for i in 1:length(stimulus)])
+    titles = pop!(dkwargs, :titles, ["Stimulus $i" for i in 1:length(stimulus)])
 
     try
         mkpath(temp_dir)
 
-        for frame_idx in 1:length(frame_range)
+        # for frame_idx in 1:length(frame_range)
+        for (frame_idx, frame_number) in enumerate(frame_range)
             frame_filename = "$fname_root-" * @sprintf("%04d",idx) * ".gif"
 
-            fig = figure("Frame $frame_idx")
-            for stim_idx in 1:length(image_arrays)
+            fig = figure("Frame $frame_idx", tight_layout=true)
+            # for stim_idx in 1:length(image_arrays)
+            for (stim_idx,(S,img_arr)) in enumerate(zip(stimulus,image_arrays))
                 subplot("$layout_x$layout_y$stim_idx")
-                imshow(image_arrays[stim_idx][:,:,frame_idx], cmap=cmap, aspect=aspect, vmin=vmin[stim_idx], vmax=vmax[stim_idx])
+                imshow(img_arr[:,:,frame_idx], cmap=cmap, aspect=aspect, vim=vmin[stim_idx], vmax=vmax[stim_idx])
                 if cbar
                     colorbar()
                 end
-                title(subplot_titles[stim_idx])
-                # TODO finish this whole thing up, still a lot to be done but it can wait
+                title(titles[stim_idx])
+                # TODO could add more options for xticks, yticks, that sort of thing later
+
+                # for now, clear ticks
+                xticks()
+                yticks()
+
+                # for now, xlabel is "t = X s"
+                xlabel("t = " * @sprintf("%0.3f", index_to_time(frame_idx)) * " s")
             end
             savefig(joinpath(temp_dir, frame_filename))
             close(fig)
         end
-        # for (idx, frame_number) in enumerate(frame_range)
-        #     # if, for whatever reason, frame_range is passed with some weird order,
-        #     # I want the resulting gif to respect that order.
-        #     frame_filename = "$fname_root-" * @sprintf("%04d",idx) * ".gif"
-        #
-        #     fig = figure()
-        #     for (idx, S) in enumerate(stimulus)
-        #         subplot("$layout_x$layout_y$idx")
-        #         imshow(frame_image(S, frame_number), cmap=cmap, aspect=aspect)
-        #         if colorbar
-        #             colorbar()
-        #         end
-        #     end
-        #     close(fig)
-        # end
+
+        # Now, let's do a system call to use convert
+        convert_cmd = `convert -delay $frame_time_hundredths -loop $loop $(joinpath(temp_dir,fname_root))-*.gif $gif_filename`
+        run(convert_cmd)
         success = true
     catch except
         success = false
+        push!(status, except)
     finally
         close("all")
         rm(joinpath(floc, fname_root), force=true, recursive=true)
