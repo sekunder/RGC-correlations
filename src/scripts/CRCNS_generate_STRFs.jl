@@ -21,6 +21,11 @@ println("-" ^ 80)
 println("CRCNS_generate_STRFs $CRCNS_script_version")
 println("Usage:\t$(@__FILE__) --defaults | --dir data_dir | file1 file2 ... [-v, --verbose 0|1|2] [--output_dir_real path] [--output_dir_sim path]")
 println("Computing STRFs for CRCNS data, then generating simulated data by presenting stimulus to those STRFs.")
+
+data_dir = get(cline_args,"dir",CRCNS_data_dir)
+output_dir_real = get(cline_args, "output_dir_real", joinpath(CRCNS_STRF_dir, "real"))
+output_dir_sim = get(cline_args, "output_dir_sim", joinpath(CRCNS_STRF_dir, "sim"))
+
 for dir in [data_dir, output_dir_real, output_dir_sim]
     if !isdir(dir)
         println("* Creating path $dir")
@@ -29,10 +34,6 @@ for dir in [data_dir, output_dir_real, output_dir_sim]
 end
 
 file_list = haskey(cline_args,"dir") ? readdir(cline_args["dir"]) : cline_args["0"]
-data_dir = get(cline_args,"dir",CRCNS_data_dir)
-
-output_dir_real = get(cline_args, "output_dir_real", joinpath(CRCNS_STRF_dir, "real"))
-output_dir_sim = get(cline_args, "output_dir_sim", joinpath(CRCNS_STRF_dir, "sim"))
 
 if haskey(cline_args,"defaults")
     data_dir = joinpath(CRCNS_dir, "Data")
