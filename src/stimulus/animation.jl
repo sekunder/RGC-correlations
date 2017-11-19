@@ -24,26 +24,35 @@ warnings about which frames got skipped, that sort of thing).
 function animated_gif(stimulus...; filename="default.gif", verbose=0,
     kwargs...)
 
-    dkwargs = Dict(kwargs)
+    ########################################
+    #### Handle filename stuff
+    ########################################
     floc = dirname(abspath(filename))
     fname_root = remove_extension(basename(filename))
     temp_dir = joinpath(floc, fname_root, "temp")
     gif_filename = joinpath(floc, fname_root * ".gif")
 
-    # TODO this is dangerous when frame_range is large!
-    image_arrays = [frame_image(S, frame_range) for S in stimulus]
+    dkwargs = Dict(kwargs)
 
-    status = []
-
+    ########################################
+    #### Get animation properties
+    ########################################
     start_frame = pop!(dkwargs, :start_frame, 1)
     end_frame = pop!(dkwargs, :end_frame, 10)
     frame_range = pop!(dkwargs, :frame_range, start_frame:end_frame)
+    loop = pop!(dkwargs, :loop, 0)
+    # Framerate: in order, check for :fps, :frame_time_s
+    fps = pop!(dkwargs, :fps, 60)
+    frame_time_s = pop!(dkwargs, :frame_time_s, round(Int,1/fps))
+    frame_time_hundredths = round(Int,100frame_time_s)
 
+    ########################################
+    #### Get pyplot options
+    ########################################
     cmap = pop!(dkwargs, :cmap, "gray")
     aspect = pop!(dkwargs, :aspect, "equal")
     cbar = pop!(dkwargs, :colorbar, true)
     tight = pop!(dkwargs, :tight_layout, true)
-
     normalize = pop!(dkwargs, :normalize, false)
     if normalize
         # normalize across stimuli as well as across frames
@@ -54,11 +63,17 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
         vmin = map(minimum, image_arrays)
         vmax = map(maximum, image_arrays)
     end
-
     layout_x = ceil(Int, sqrt(length(stimulus)))
     layout_y = ceil(Int, sqrt(length(stimulus)))
-
     titles = pop!(dkwargs, :titles, ["Stimulus $i" for i in 1:length(stimulus)])
+
+    ########################################
+    #### State setting things up
+    ########################################
+    # TODO this is dangerous when frame_range is large!
+    image_arrays = [frame_image(S, frame_range) for S in stimulus]
+
+    status = []
 
     try
         mkpath(temp_dir)
