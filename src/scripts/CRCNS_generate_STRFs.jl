@@ -17,13 +17,24 @@ include("../util/nonlinearities.jl")
 cline_args = process_args(ARGS, bool_flags=["d"])
 verbose = cline_args["v"] ? 1 : cline_args["verbose"]
 
+println("-" ^ 80)
+println("CRCNS_generate_STRFs $CRCNS_script_version")
+println("Usage:\t$(@__FILE__) --defaults | --dir data_dir | file1 file2 ... [-v, --verbose 0|1|2] [--output_dir_real path] [--output_dir_sim path]")
+println("Computing STRFs for CRCNS data, then generating simulated data by presenting stimulus to those STRFs.")
+for dir in [data_dir, output_dir_real, output_dir_sim]
+    if !isdir(dir)
+        println("* Creating path $dir")
+        mkpath(dir)
+    end
+end
+
 file_list = haskey(cline_args,"dir") ? readdir(cline_args["dir"]) : cline_args["0"]
 data_dir = get(cline_args,"dir",CRCNS_data_dir)
 
 output_dir_real = get(cline_args, "output_dir_real", joinpath(CRCNS_STRF_dir, "real"))
 output_dir_sim = get(cline_args, "output_dir_sim", joinpath(CRCNS_STRF_dir, "sim"))
 
-if cline_args["d"]
+if haskey(cline_args,"defaults")
     data_dir = joinpath(CRCNS_dir, "Data")
     file_list = readdir(data_dir)
     output_dir_real = joinpath(CRCNS_STRF_dir, "real")
@@ -35,16 +46,6 @@ mat_files = filter(x -> endswith(x, ".mat"), file_list)
 real_jld_files = filter(x -> endswith(x, ".jld"), readdir(output_dir_real))
 sim_jld_files = filter(x -> endswith(x, ".jld"), readdir(output_dir_sim))
 
-println("-" ^ 80)
-println("CRCNS_generate_STRFs $CRCNS_script_version")
-println("Usage: ")
-for dir in [data_dir, output_dir_real, output_dir_sim]
-    if !isdir(dir)
-        println("* Creating path $dir")
-        mkpath(dir)
-    end
-end
-println("Computing STRFs for CRCNS data, then generating simulated data by presenting stimulus to those STRFs.")
 println("Preparing to process these files:")
 println("\t$(join(mat_files,"\n\t"))")
 
