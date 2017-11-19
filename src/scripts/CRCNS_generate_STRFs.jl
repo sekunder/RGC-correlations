@@ -14,18 +14,31 @@ include("../util/nonlinearities.jl")
 # include("../util/constants.jl")
 # using Spikes, Stimulus, Probability
 
-# CRCNS_data_dir = joinpath(CRCNS_dir, "Data")
-output_dir_real = joinpath(CRCNS_STRF_dir, "real")
-output_dir_sim = joinpath(CRCNS_STRF_dir, "sim")
+cline_args = process_args(ARGS, bool_flags=["d"])
+verbose = cline_args["v"] ? 1 : cline_args["verbose"]
 
-mat_files = filter(x -> endswith(x, ".mat"), readdir(CRCNS_data_dir))
-# mat_files = filter(x -> x == "20080516_R1.mat", readdir(CRCNS_data_dir)) #for debugging
+file_list = haskey(cline_args,"dir") ? readdir(cline_args["dir"]) : cline_args["0"]
+data_dir = get(cline_args,"dir",CRCNS_data_dir)
+
+output_dir_real = get(cline_args, "output_dir_real", joinpath(CRCNS_STRF_dir, "real"))
+output_dir_sim = get(cline_args, "output_dir_sim", joinpath(CRCNS_STRF_dir, "sim"))
+
+if cline_args["d"]
+    data_dir = joinpath(CRCNS_dir, "Data")
+    file_list = readdir(data_dir)
+    output_dir_real = joinpath(CRCNS_STRF_dir, "real")
+    output_dir_sim = joinpath(CRCNS_STRF_dir, "sim")
+end
+
+
+mat_files = filter(x -> endswith(x, ".mat"), file_list)
 real_jld_files = filter(x -> endswith(x, ".jld"), readdir(output_dir_real))
 sim_jld_files = filter(x -> endswith(x, ".jld"), readdir(output_dir_sim))
 
 println("-" ^ 80)
-println("CRCNS_generate_STRFs $CRCNS_script_version: BEGIN SCRIPT $(now())")
-for dir in [CRCNS_data_dir, output_dir_real, output_dir_sim]
+println("CRCNS_generate_STRFs $CRCNS_script_version")
+println("Usage: ")
+for dir in [data_dir, output_dir_real, output_dir_sim]
     if !isdir(dir)
         println("* Creating path $dir")
         mkpath(dir)
@@ -39,7 +52,7 @@ for mat_file in mat_files
     println("* Processing file $mat_file")
     # poor planning on my part means I still have to open the damn files here to
     # get the number of recording indexes. Oh well.
-    vars = matread(joinpath(CRCNS_data_dir, mat_file))
+    vars = matread(joinpath(data_dir, mat_file))
     recordings = 1:length(vars["datainfo"]["RecNo"])
     # recordings = [2]
     vars = 0 # just a hint for garbage collecion
@@ -49,48 +62,48 @@ for mat_file in mat_files
         sim_files = filter(x -> startswith(x, "$(remove_extension(mat_file))-$rec_idx"), sim_jld_files)
         if !isempty(real_files) && !isempty(sim_files)
             println("  Found files")
-            println("    Real: $real_files")
-            println("    Sim : $sim_files")
+            println("    Real: $(join(real_files,","))")
+            println("    Sim : $(join(sim_files,","))")
             println("  Skipping processing.")
-        else
-            print("    Computing real STRFs...")
-            # stim = CRCNS_Stimulus(joinpath(CRCNS_dir, CRCNS_data_dir, mat_file), rec_idx)
-            # spike_hist = histogram(spikes, frame)
-            stim, spikes, spike_hist, STRFs = CRCNS_output_STRFs(joinpath(CRCNS_data_dir, mat_file), rec_idx, output_dir_real; CRCNS_script_version=CRCNS_script_version)
-            println("done")
-            L = zeros(spike_hist)
-            ST_simulated = Vector{Vector{Float64}}(n_cells(spikes))
-            println("    Simulating, using phi = sigmoid, Q = norm(r * tau - n) / N_frames")
-            println("    [r = response computed | s = response scaled to match STRFs | p = poisson process spike train generated]")
-            print("      ")
-            for (idx, RF) in enumerate(STRFs)
-                print("$idx[")
-                (r,tau) = STRF_response(RF, stim, flip_STRF_time=true)
-                n = spike_hist[:,idx]
-                print("r|")
-
-                c_range = (1.0:0.1:maximum(n)) / tau
-                h_range = [10.0^k for k in 2.0:0.1:4.0]
-                x0_range = decimal_round(minimum(r),2):0.001:decimal_round(maximum(r),2)
-                theta_ranges = [c_range, h_range, x0_range]
-                L[:,idx], theta_opt, Q_opt = scale_response(r, n, sigmoid, (u,v) -> (norm(u * tau - v) / length(u)); d=3, ranges=theta_ranges, save_fun=Float64[])
-                print("s|")
-
-                ST_simulated[idx] = inhomogeneous_poisson_process(L[:,idx], tau; sampling_rate_factor=10)
-                print("p] ")
-            end
-
-            print("\n    Computing simulated STRFs...")
-            sim_spikes = SpikeTrains(ST_simulated, spikes.I; comment="Simulated spike train for CRCNS data $mat_file, recording index $rec_idx", CRCNS_script_version=CRCNS_script_version)
-            sim_hist = histogram(sim_spikes, frame_time(stim); N_bins=n_frames(stim))
-            sim_STRFs = compute_STRFs(sim_hist, stim)
-            println("done")
-
-            indexes = index_set_to_int(sim_sikes.I)
-            sim_filename = "$(remove_extension(mat_file))-$(rec_idx)_simulated_$indexes.jld"
-            println("    Writing simulated spike trains and computed STRFs to $(joinpath(output_dir_sim,sim_filename))")
-            save(joinpath(output_dir_sim, sim_filename), "CRCNS_script_version", CRCNS_script_version, "timestamp", now(), "STRFs", sim_STRFs, "spikes", sim_spikes)
+            continue
         end
+        print("    Computing real STRFs...")
+        # stim = CRCNS_Stimulus(joinpath(CRCNS_dir, data_dir, mat_file), rec_idx)
+        # spike_hist = histogram(spikes, frame)
+        stim, spikes, spike_hist, STRFs = CRCNS_output_STRFs(joinpath(data_dir, mat_file), rec_idx, output_dir_real; CRCNS_script_version=CRCNS_script_version, verbose=verbose)
+        println("done")
+        L = zeros(spike_hist)
+        ST_simulated = Vector{Vector{Float64}}(n_cells(spikes))
+        println("    Simulating, using phi = sigmoid, Q = norm(r * tau - n) / N_frames")
+        println("    [r = response computed | s = response scaled to match STRFs | p = poisson process spike train generated]")
+        print("      ")
+        for (idx, RF) in enumerate(STRFs)
+            print("$idx[")
+            (r,tau) = STRF_response(RF, stim, flip_STRF_time=true)
+            n = spike_hist[:,idx]
+            print("r|")
+
+            c_range = (1.0:0.1:maximum(n)) / tau
+            h_range = [10.0^k for k in 2.0:0.1:4.0]
+            x0_range = decimal_round(minimum(r),2):0.001:decimal_round(maximum(r),2)
+            theta_ranges = [c_range, h_range, x0_range]
+            L[:,idx], theta_opt, Q_opt = scale_response(r, n, sigmoid, (u,v) -> (norm(u * tau - v) / length(u)); d=3, ranges=theta_ranges, save_fun=Float64[])
+            print("s|")
+
+            ST_simulated[idx] = inhomogeneous_poisson_process(L[:,idx], tau; sampling_rate_factor=10)
+            print("p] ")
+        end
+
+        print("\n    Computing simulated STRFs...")
+        sim_spikes = SpikeTrains(ST_simulated, spikes.I; comment="Simulated spike train for CRCNS data $mat_file, recording index $rec_idx", CRCNS_script_version=CRCNS_script_version)
+        sim_hist = histogram(sim_spikes, frame_time(stim); N_bins=n_frames(stim))
+        sim_STRFs = compute_STRFs(sim_hist, stim)
+        println("done")
+
+        indexes = index_set_to_int(sim_sikes.I)
+        sim_filename = "$(remove_extension(mat_file))-$(rec_idx)_simulated_$indexes.jld"
+        println("    Writing simulated spike trains and computed STRFs to $(joinpath(output_dir_sim,sim_filename))")
+        save(joinpath(output_dir_sim, sim_filename), "CRCNS_script_version", CRCNS_script_version, "timestamp", now(), "STRFs", sim_STRFs, "spikes", sim_spikes)
     end
 end
 
