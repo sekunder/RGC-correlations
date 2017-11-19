@@ -47,7 +47,7 @@ function process_args(args; bool_flags=String[], parse_flags=String[],
     D["0"] = String[]
     while idx <= length(args)
         if startswith(args[idx], "--")
-            D[args[idx][3:end]] = args[idx+1]
+            D[args[idx][3:end]] = idx == length(args) ? true : args[idx+1]
             idx += 2
         elseif startswith(args[idx], "-")
             D[args[idx][2:end]] = true

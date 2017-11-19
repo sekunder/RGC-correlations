@@ -14,7 +14,7 @@ include("../util/nonlinearities.jl")
 # include("../util/constants.jl")
 # using Spikes, Stimulus, Probability
 
-cline_args = process_args(ARGS, bool_flags=["d"])
+cline_args = process_args(ARGS)
 verbose = cline_args["v"] ? 1 : cline_args["verbose"]
 
 println("-" ^ 80)
