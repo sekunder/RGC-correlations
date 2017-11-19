@@ -97,7 +97,7 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
             # for stim_idx in 1:length(image_arrays)
             for (stim_idx,(S,img_arr)) in enumerate(zip(stimulus,image_arrays))
                 subplot("$layout_x$layout_y$stim_idx")
-                imshow(img_arr[:,:,frame_idx], cmap=cmap, aspect=aspect, vim=vmin[stim_idx], vmax=vmax[stim_idx])
+                imshow(img_arr[:,:,frame_idx], cmap=cmap, aspect=aspect, vmin=vmin[stim_idx], vmax=vmax[stim_idx])
                 if cbar
                     colorbar()
                 end
