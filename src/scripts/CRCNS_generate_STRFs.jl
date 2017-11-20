@@ -41,7 +41,7 @@ if cline_args["defaults"]
     output_dir_sim = joinpath(CRCNS_STRF_dir, "sim")
 end
 
-setdiff!(file_list, get(cline_args,"skip",String[]))
+file_list = setdiff(file_list, get(cline_args,"skip",String[]))
 
 for dir in [data_dir, output_dir_real, output_dir_sim]
     if !isdir(dir)
