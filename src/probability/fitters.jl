@@ -33,7 +33,7 @@ function second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1);
     if algorithm == :naive
         return _Naive_second_order_model(X, I; verbose=verbose, kwargs...)
     else
-        return _NLopt_second_order_model(X, I; verbose=(verbose>0), algorithm=algorithm, kwargs...)
+        return _NLopt_second_order_model(X, I; verbose=verbose, algorithm=algorithm, kwargs...)
     end
 end
 function _Naive_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); verbose=0, kwargs...)
@@ -75,7 +75,7 @@ function _Naive_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
     return IsingDistribution(J_opt, I; autocomment="second_order_model[gradient_optimizer|$fun]", opt_val=F_opt, opt_ret=stop, dkwargs...)
     # return (F_opt, J_opt, stop, Jseed, mu, (fun == "loglikelihood" ? L_X : K_X))
 end
-function _NLopt_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); verbose=false, kwargs...)
+function _NLopt_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,1); verbose=0, kwargs...)
     dkwargs = Dict(kwargs)
     Xselected = X[I,:]
     N_neurons,N_samples = size(Xselected)
@@ -104,13 +104,13 @@ function _NLopt_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
     opt_Ising = Opt(alg, N_neurons^2)
 
     if fun == "loglikelihood"
-        if verbose
+        if verbose > 0
             println("second_order_model[NLopt/$alg]: setting max objective function $fun")
             println("\tApproximate cost: 2^$N_neurons + $N_samples per evalution")
         end
         max_objective!(opt_Ising, L_X)
     else
-        if verbose
+        if verbose > 0
             println("second_order_model[NLopt/$alg]: setting min objective function $fun")
             println("\tApproximate cost: $N_neurons * $N_samples per evaluation")
         end
@@ -137,7 +137,7 @@ function _NLopt_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
     if haskey(dkwargs, :maxtime)
         maxtime!(opt_Ising, pop!(dkwargs,:maxtime))
     end
-    if verbose
+    if verbose > 0
         println("second_order_model[NLopt/$alg]: running optimization")
         # println("\topt object: $(opt_Ising)") # turns out this just prints "Opt(:algorithm, N_vars)"
         println("\talgorithm: $(algorithm(opt_Ising))")

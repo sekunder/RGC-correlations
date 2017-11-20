@@ -158,7 +158,7 @@ be any iterator that is indexed by a range of the form `1:N` and returns `Real`
 numbers (and reports `length(iter) = N`)
 
 """
-function brute_force_optimizer(obj_fun, d::Integer; verbose=false,
+function brute_force_optimizer(obj_fun, d::Integer; verbose=0,
     objective=:min, kwargs...)
     if d == 3
         return brute_force_optimizer3(obj_fun, d; verbose=verbose, objective=objective, kwargs...)
@@ -167,7 +167,7 @@ function brute_force_optimizer(obj_fun, d::Integer; verbose=false,
         #MAYBEDO expand to any dimensionality
     end
 end
-function brute_force_optimizer3(obj_fun, d; verbose=false,
+function brute_force_optimizer3(obj_fun, d; verbose=0,
     objective=:min, save_fun::Array{Float64}=[], kwargs...)
 
     d = 3
@@ -186,7 +186,7 @@ function brute_force_optimizer3(obj_fun, d; verbose=false,
     F_opt = -obj_sign * Inf
     F_cur = 0.0
     ranges = pop!(dkwargs, :ranges)
-    if verbose
+    if verbose > 0
         println("brute_force_optimizer: $(obj_sign > 0 ? "maximizing" : "minimizing") function of $d variables")
         for k = 1:d
             println("\trange $k: $(length(ranges[k])) options")
