@@ -80,7 +80,7 @@ for mat_file in mat_files
         print("    Computing real STRFs...")
         # stim = CRCNS_Stimulus(joinpath(CRCNS_dir, data_dir, mat_file), rec_idx)
         # spike_hist = histogram(spikes, frame)
-        stim, spikes, spike_hist, STRFs = CRCNS_output_STRFs(joinpath(data_dir, mat_file), rec_idx, output_dir_real; CRCNS_script_version=CRCNS_script_version, verbose=verbose)
+        stim, spikes, spike_hist, STRFs = CRCNS_output_STRFs(joinpath(data_dir, mat_file), rec_idx, output_dir_real; CRCNS_script_version=CRCNS_script_version, verbose=verbose, single_rec=(length(recordings) == 1))
         println("done")
         L = zeros(spike_hist)
         ST_simulated = Vector{Vector{Float64}}(n_cells(spikes))
