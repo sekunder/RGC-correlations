@@ -14,18 +14,25 @@ include("../util/nonlinearities.jl")
 # include("../util/constants.jl")
 # using Spikes, Stimulus, Probability
 
-cline_args = process_args(ARGS; parse_flags=["verbose"], bool_flags=["defaults"])
+cline_args = process_args(ARGS; parse_flags=["verbose", "poisson_time","poisson_loops","poisson_spikes"], bool_flags=["defaults"])
 verbose = get(cline_args,"verbose",[0])[1]
+poisson_time::Float16 = get(cline_args,"poisson_time",[0.0])[1]
+poisson_loops = get(cline_args,"poisson_loops",[0])[1]
+poisson_spikes = get(cline_args,"poisson_spikes",[0])[1]
 
 println("-" ^ 80)
 println("CRCNS_generate_STRFs $CRCNS_script_version")
 println("Usage:")
 println("  $(@__FILE__) --defaults | --dir data_dir | file1 file2 ... [options]")
-println("\t")
+println("\tProcesses files specified by first argument/flags:")
+println("\t\t--defaults : read all .mat files in CRCNS_Data_dir, also sets output directories")
+println("\t\t--dir data_dir : real all .mat files in dir")
+println("\t\tfile1 file2 ... : read files in list from CRCNS_Data_dir")
 println("\tOptions:")
 println("\t\t--verbose 0|1|2 : controls verbosity of output")
 println("\t\t--output_dir_real path, --output_dir_sim path : where to write .jld files")
 println("\t\t--skip file1 file2 ... : which files to skip (including overriding defaults)")
+println("\t\t--poisson_time t, --poisson_loops n, --poisson_spikes m : Stop poisson process generation if it lasts longer than t seconds, n loops, or m spikes")
 println()
 println("Computing STRFs for CRCNS data, then generating simulated data by presenting stimulus to those STRFs.")
 
@@ -85,6 +92,7 @@ for mat_file in mat_files
         println("done")
         L = zeros(spike_hist)
         ST_simulated = Vector{Vector{Float64}}(n_cells(spikes))
+        ST_status = Vector{Vector{Symbol}}(n_cell(spikes))
         println("    Simulating, using phi = sigmoid, Q = norm(r * tau - n) / N_frames")
         println("    [r = response computed | s = response scaled to match STRFs | p = poisson process spike train generated]")
         print("      ")
@@ -101,8 +109,20 @@ for mat_file in mat_files
             L[:,idx], theta_opt, Q_opt = scale_response(r, n, sigmoid, (u,v) -> (norm(u * tau - v) / length(u)); d=3, ranges=theta_ranges, save_fun=Float64[])
             print("s|")
 
-            ST_simulated[idx] = inhomogeneous_poisson_process(L[:,idx], tau; sampling_rate_factor=10)
-            print("p] ")
+            if verbose > 0
+                print("[Expected #spikes = $(cumsum_kbn(L[:,idx] * tau))]")
+            end
+
+            ST_status[idx] = Vector{Symbol}()
+            time_arr = zeros(1)
+            ST_simulated[idx] = inhomogeneous_poisson_process(L[:,idx], tau;
+                sampling_rate_factor=10, max_real_time=poisson_time, max_loops=poisson_loops, max_spikes=poisson_spikes,
+                exit_status=ST_status[idx], total_time=time_arr)
+            print("p")
+            if verbose > 0
+                print("[Got $(length(ST_simulated[idx])) spikes in $(time_arr[1]) s]")
+            end
+            print("] ")
         end
 
         print("\n    Computing simulated STRFs...")
