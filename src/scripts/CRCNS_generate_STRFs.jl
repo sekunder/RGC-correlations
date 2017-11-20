@@ -14,17 +14,34 @@ include("../util/nonlinearities.jl")
 # include("../util/constants.jl")
 # using Spikes, Stimulus, Probability
 
-cline_args = process_args(ARGS)
-verbose = cline_args["v"] ? 1 : cline_args["verbose"]
+cline_args = process_args(ARGS; parse_flags=["verbose"], bool_flags=["defaults"])
+verbose = get(cline_args,"verbose",[0])[1]
 
 println("-" ^ 80)
 println("CRCNS_generate_STRFs $CRCNS_script_version")
-println("Usage:\t$(@__FILE__) --defaults | --dir data_dir | file1 file2 ... [-v, --verbose 0|1|2] [--output_dir_real path] [--output_dir_sim path]")
+println("Usage:")
+println("  $(@__FILE__) --defaults | --dir data_dir | file1 file2 ... [options]")
+println("\t")
+println("\tOptions:")
+println("\t\t--verbose 0|1|2 : controls verbosity of output")
+println("\t\t--output_dir_real path, --output_dir_sim path : where to write .jld files")
+println("\t\t--skip file1 file2 ... : which files to skip (including overriding defaults)")
+println()
 println("Computing STRFs for CRCNS data, then generating simulated data by presenting stimulus to those STRFs.")
 
-data_dir = get(cline_args,"dir",CRCNS_data_dir)
-output_dir_real = get(cline_args, "output_dir_real", joinpath(CRCNS_STRF_dir, "real"))
-output_dir_sim = get(cline_args, "output_dir_sim", joinpath(CRCNS_STRF_dir, "sim"))
+data_dir = get(cline_args,"dir",[CRCNS_data_dir])[1]
+output_dir_real = get(cline_args, "output_dir_real", [joinpath(CRCNS_STRF_dir, "real")])[1]
+output_dir_sim = get(cline_args, "output_dir_sim", [joinpath(CRCNS_STRF_dir, "sim")])[1]
+file_list = haskey(cline_args,"dir") ? readdir(cline_args["dir"][1]) : cline_args["0"]
+
+if cline_args["defaults"]
+    data_dir = joinpath(CRCNS_dir, "Data")
+    file_list = readdir(data_dir)
+    output_dir_real = joinpath(CRCNS_STRF_dir, "real")
+    output_dir_sim = joinpath(CRCNS_STRF_dir, "sim")
+end
+
+setdiff!(file_list, get(cline_args,"skip",String[]))
 
 for dir in [data_dir, output_dir_real, output_dir_sim]
     if !isdir(dir)
@@ -33,20 +50,11 @@ for dir in [data_dir, output_dir_real, output_dir_sim]
     end
 end
 
-file_list = haskey(cline_args,"dir") ? readdir(cline_args["dir"]) : cline_args["0"]
-
-if haskey(cline_args,"defaults")
-    data_dir = joinpath(CRCNS_dir, "Data")
-    file_list = readdir(data_dir)
-    output_dir_real = joinpath(CRCNS_STRF_dir, "real")
-    output_dir_sim = joinpath(CRCNS_STRF_dir, "sim")
-end
-
-
 mat_files = filter(x -> endswith(x, ".mat"), file_list)
 real_jld_files = filter(x -> endswith(x, ".jld"), readdir(output_dir_real))
 sim_jld_files = filter(x -> endswith(x, ".jld"), readdir(output_dir_sim))
 
+println("Verbosity level: $verbose")
 println("Preparing to process these files:")
 println("\t$(join(mat_files,"\n\t"))")
 
