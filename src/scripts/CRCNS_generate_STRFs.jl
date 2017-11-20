@@ -113,10 +113,10 @@ for mat_file in mat_files
             L[:,idx], theta_opt, Q_opt = scale_response(r, n, sigmoid, (u,v) -> (norm(u * tau - v) / length(u)); d=3, ranges=theta_ranges, save_fun=Float64[])
             print("s|")
 
-            if verbose > 0
-                expected_spikes = cumsum_kbn((L[:,idx] * tau)[:])
-                print("[Expected #spikes = $expected_spikes]")
-            end
+            # if verbose > 0
+            #     expected_spikes = cumsum_kbn((L[:,idx] * tau)[:])
+            #     print("[Expected #spikes = $expected_spikes]")
+            # end
 
             ST_status[idx] = Vector{Symbol}()
             time_arr = zeros(1)
