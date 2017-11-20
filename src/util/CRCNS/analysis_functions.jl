@@ -24,6 +24,8 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
     verbose=0, CRCNS_script_version=v"0.1", kwargs...)
     # fname = basename(mat_file)
     # floc = dirname(abspath(mat_file))
+    dkwargs = Dict(kwargs)
+
     base_name = remove_extension(basename(mat_file))
     if !isdir(output_dir)
         if verbose > 0
@@ -32,7 +34,8 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
         mkpath(output_dir)
     end
 
-    stim = CRCNS_Stimulus(mat_file, rec_idx; verbose=(verbose > 1))
+    single_rec = pop!(dkwargs,:single_rec,false)
+    stim = CRCNS_Stimulus(mat_file, rec_idx; verbose=verbose)
     spikes = Spikes.CRCNS_get_spikes_from_file(mat_file, rec_idx)
     idx = index_set_to_int(spikes.I)
     filename = "$base_name-$(rec_idx)_STRF_$idx.jld"

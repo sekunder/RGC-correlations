@@ -66,6 +66,7 @@ for mat_file in mat_files
     recordings = 1:length(vars["datainfo"]["RecNo"])
     # recordings = [2]
     vars = 0 # just a hint for garbage collecion
+    println("  Found $(length(recordings)) recordings")
     for rec_idx in recordings
         println("  Recording $rec_idx")
         real_files = filter(x -> startswith(x, "$(remove_extension(mat_file))-$rec_idx"), real_jld_files)
@@ -78,9 +79,9 @@ for mat_file in mat_files
             continue
         end
         print("    Computing real STRFs...")
-        # stim = CRCNS_Stimulus(joinpath(CRCNS_dir, data_dir, mat_file), rec_idx)
-        # spike_hist = histogram(spikes, frame)
-        stim, spikes, spike_hist, STRFs = CRCNS_output_STRFs(joinpath(data_dir, mat_file), rec_idx, output_dir_real; CRCNS_script_version=CRCNS_script_version, verbose=verbose, single_rec=(length(recordings) == 1))
+
+        stim, spikes, spike_hist, STRFs = CRCNS_output_STRFs(joinpath(data_dir, mat_file), rec_idx, output_dir_real;
+            CRCNS_script_version=CRCNS_script_version, verbose=verbose, single_rec=(length(recordings) == 1))
         println("done")
         L = zeros(spike_hist)
         ST_simulated = Vector{Vector{Float64}}(n_cells(spikes))
