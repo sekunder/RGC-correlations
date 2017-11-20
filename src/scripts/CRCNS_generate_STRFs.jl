@@ -97,7 +97,7 @@ for mat_file in mat_files
         L = zeros(spike_hist)
         ST_simulated = Vector{Vector{Float64}}(n_cells(spikes))
         ST_status = Vector{Vector{Symbol}}(n_cells(spikes))
-        println("    Simulating, using phi = sigmoid, Q = norm(r * tau - n) / N_frames")
+        println("    Simulating $(n_cells(spikes)) cells, using phi = sigmoid, Q = norm(r * tau - n) / N_frames")
         println("    [r = response computed | s = response scaled to match STRFs | p = poisson process spike train generated]")
         print("      ")
         for (idx, RF) in enumerate(STRFs)
@@ -131,10 +131,17 @@ for mat_file in mat_files
         end
 
         print("\n    Computing simulated STRFs...")
-        sim_spikes = SpikeTrains(ST_simulated, spikes.I; comment="Simulated spike train for CRCNS data $mat_file, recording index $rec_idx", CRCNS_script_version=CRCNS_script_version)
+        sim_spikes = SpikeTrains(ST_simulated, spikes.I;
+            comment="Simulated spike train for CRCNS data $mat_file, recording index $rec_idx",
+            CRCNS_script_version=CRCNS_script_version,
+            poisson_status=ST_status)
+        hide_metadata!(sim_spikes, :poisson_status)
         sim_hist = histogram(sim_spikes, frame_time(stim); N_bins=n_frames(stim))
         sim_STRFs = compute_STRFs(sim_hist, stim)
         println("done")
+        if verbose > 1
+            println(sim_spikes)
+        end
 
         indexes = index_set_to_int(sim_spikes.I)
         sim_filename = "$(remove_extension(mat_file))-$(rec_idx)_simulated_$indexes.jld"
