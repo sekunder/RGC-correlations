@@ -35,7 +35,7 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
     end
 
     single_rec = pop!(dkwargs,:single_rec,false)
-    stim = CRCNS_Stimulus(mat_file, rec_idx; verbose=verbose)
+    stim = CRCNS_Stimulus(mat_file, rec_idx; verbose=verbose, single_rec=single_rec)
     spikes = Spikes.CRCNS_get_spikes_from_file(mat_file, rec_idx)
     idx = index_set_to_int(spikes.I)
     filename = "$base_name-$(rec_idx)_STRF_$idx.jld"
