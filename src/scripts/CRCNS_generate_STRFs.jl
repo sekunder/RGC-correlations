@@ -62,6 +62,10 @@ real_jld_files = filter(x -> endswith(x, ".jld"), readdir(output_dir_real))
 sim_jld_files = filter(x -> endswith(x, ".jld"), readdir(output_dir_sim))
 
 println("Verbosity level: $verbose")
+println("Poisson options:")
+println("\tReal time: $poisson_time")
+println("\tLoops    : $poisson_loops")
+println("\tSpikes   : $poisson_spikes")
 println("Preparing to process these files:")
 println("\t$(join(mat_files,"\n\t"))")
 
