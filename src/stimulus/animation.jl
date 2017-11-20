@@ -128,7 +128,7 @@ function animated_gif(stimulus...; filename="default.gif", verbose=0,
         if verbose > 0
             print("animated_gif: Running `convert`...")
         end
-        convert_cmd = `convert -delay $frame_time_hundredths -loop $loop $(joinpath(temp_dir,fname_root))-*$intermediate_extension $(joinpath(floc,gif_filename))`
+        convert_cmd = `convert -delay $frame_time_hundredths -loop $loop '$(joinpath(temp_dir,fname_root))-*$intermediate_extension' $(joinpath(floc,gif_filename))`
         run(convert_cmd)
         if verbose > 0
             println("done.")

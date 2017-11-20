@@ -35,7 +35,7 @@ based on the first algorithm outlined at http://freakonometrics.hypotheses.org/7
 function inhomogeneous_poisson_process(lam::Vector{Float64}, dt::Float64;
     Tmax::Float64=length(lam) * dt, sampling_rate_factor::Int=1,
     max_real_time::Float64=0.0, max_loops::Int=0, max_spikes::Int=0,
-    total_time=[], total_loops=[], total_spikes=[]
+    total_time=[], total_loops=[], total_spikes=[],
     exit_status=Symbol[])
     # based on the first algorithm outlined at http://freakonometrics.hypotheses.org/724
     dt = dt/sampling_rate_factor
