@@ -96,7 +96,7 @@ for mat_file in mat_files
         println("done")
         L = zeros(spike_hist)
         ST_simulated = Vector{Vector{Float64}}(n_cells(spikes))
-        ST_status = Vector{Vector{Symbol}}(n_cell(spikes))
+        ST_status = Vector{Vector{Symbol}}(n_cells(spikes))
         println("    Simulating, using phi = sigmoid, Q = norm(r * tau - n) / N_frames")
         println("    [r = response computed | s = response scaled to match STRFs | p = poisson process spike train generated]")
         print("      ")
