@@ -114,7 +114,8 @@ for mat_file in mat_files
             print("s|")
 
             if verbose > 0
-                print("[Expected #spikes = $(cumsum_kbn(L[:,idx] * tau))]")
+                expected_spikes = cumsum_kbn((L[:,idx] * tau)[:])
+                print("[Expected #spikes = $expected_spikes]")
             end
 
             ST_status[idx] = Vector{Symbol}()

@@ -46,7 +46,7 @@ function inhomogeneous_poisson_process(lam::Vector{Float64}, dt::Float64;
     real_time = 0.0
     n_loops = 0
     n_spikes = 0
-    while t < Tmax &&
+    while t < Tmax
         tic()
         u = 1 - rand()
         s = s - log(u)
