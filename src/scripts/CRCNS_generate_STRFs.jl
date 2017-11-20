@@ -114,7 +114,7 @@ for mat_file in mat_files
             print("s|")
 
             if verbose > 0
-                expected_spikes = cumsum_kbn((L[:,idx] * tau)[:])
+                expected_spikes = sum_kbn((L[:,idx] * tau)[:])
                 print("[Expected #spikes = $expected_spikes]")
             end
 
