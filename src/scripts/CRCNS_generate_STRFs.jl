@@ -16,7 +16,7 @@ include("../util/nonlinearities.jl")
 
 cline_args = process_args(ARGS; parse_flags=["verbose", "poisson_time","poisson_loops","poisson_spikes"], bool_flags=["defaults"])
 verbose = get(cline_args,"verbose",[0])[1]
-poisson_time::Float16 = get(cline_args,"poisson_time",[0.0])[1]
+poisson_time = Float64(get(cline_args,"poisson_time",[0.0])[1])
 poisson_loops = get(cline_args,"poisson_loops",[0])[1]
 poisson_spikes = get(cline_args,"poisson_spikes",[0])[1]
 
