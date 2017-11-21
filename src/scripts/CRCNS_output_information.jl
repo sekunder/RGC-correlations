@@ -146,8 +146,8 @@ for sim_file in sim_jld_files
 
     # bin_size is now set at the commandline. Default value is 10ms
     println("  Computing spike rasters at bin size $(1000bin_size) ms")
-    real_raster = raster(real_spikes, bin_size)
-    sim_raster = raster(sim_spikes, bin_size)
+    real_raster = transpose(raster(real_spikes, bin_size))
+    sim_raster = transpose(raster(sim_spikes, bin_size))
 
     # gonna try only multiples of 5
     size_range = intersect(1:n_cells(real_spikes), default_size_range)
