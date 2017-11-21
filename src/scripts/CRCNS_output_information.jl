@@ -33,7 +33,7 @@ using JLD
 # appropriate), add this to a dictionary structure, etc.
 
 # cline_args = process_args(ARGS, parse_defaults=Dict("n_trials"=>20, "bin_size"=>10e-3, "maxtime"=>0))
-cline_args = process_args(ARGS, parse_flags=["n_trials", "bin_size","maxtime"], bool_flags=["help","defaults"])
+cline_args = process_args(ARGS, parse_flags=["n_trials", "bin_size","maxtime", "verbose"], bool_flags=["help","defaults"])
 verbose = get(cline_args,"verbose",[0])[1]
 n_trials = get(cline_args,"n_trials",[20])[1]
 # To make life easy, I want to be able to say julia /script 10 to do 10ms
