@@ -41,6 +41,8 @@ temp_bin_size = get(cline_args,"bin_size",[10e-3])[1]
 bin_size = isa(temp_bin_size, Integer) ? temp_bin_size / 1000.0 : temp_bin_size
 maxtime = get(cline_args,"maxtime",[0])[1]
 
+default_size_range = 5:5:40
+
 if cline_args["help"]
     println(help_string)
     println("VERSION: $CRCNS_script_version")
@@ -77,6 +79,7 @@ if maxtime > 0
     println("NLopt maxtime = $maxtime")
 end
 println("Will run $n_trials trials for each sample size")
+println("Default size range is $default_size_range")
 println("Will write output to $information_dir")
 
 println("Preparing to process these files:")
@@ -147,7 +150,7 @@ for sim_file in sim_jld_files
     sim_raster = raster(sim_spikes, bin_size)
 
     # gonna try only multiples of 5
-    size_range = intersect(1:n_cells(real_spikes), 5:5:40)
+    size_range = intersect(1:n_cells(real_spikes), default_size_range)
     println("  Preparing to fit models to subsamples of sizes $(join(size_range, ", "))")
     # From what I've seen in the JLD docs, there's no "append" mode. So first,
     # we have to load the existing data from the jld file, if it exists.
