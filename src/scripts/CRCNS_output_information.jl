@@ -108,6 +108,13 @@ for sim_file in sim_jld_files
     end
     println("* Processing $root_name, recording index $rec_idx")
     println("  Loading CRCNS spikes from $root_name.mat")
+    # what the fuck is up with how julia handles global variables?! without the
+    # line below, this script gives me an UndefVarError for real_spikes, even
+    # though the verbose output shows it successfully ran. What's worse is this
+    # will probably cause some overhead because it's changing the type so
+    # drastically.
+    real_spikes = 0
+    sim_spikes = 0
     try
         real_spikes = Spikes.CRCNS_get_spikes_from_file(joinpath(data_dir, "$root_name.mat"), rec_idx)
     catch y
