@@ -119,7 +119,7 @@ for sim_file in sim_jld_files
     real_spikes = 0
     sim_spikes = 0
     try
-        real_spikes = Spikes.CRCNS_get_spikes_from_file(joinpath(data_dir, "$root_name.mat"), rec_idx; verbose=verbose)
+        real_spikes = Spikes.CRCNS_get_spikes_from_file(joinpath(data_dir, "$root_name.mat"), rec_idx)
     catch y
         println("! Exception occurred. Skipping file.")
         show(y)
