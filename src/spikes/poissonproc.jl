@@ -11,7 +11,7 @@ and uses sampling rate `dt/k` (For instance, with the CRCNS data, `k` between 10
 and 20 seems to work).
 
 Will not produce spikes with repeated spike times (this could come up if, e.g.
-`lam[t]` is close to `0`)
+`lam[t]` is very large)
 
 Options:
  * `sampling_rate_factor::Int = 1` Increases sampling rate
@@ -29,7 +29,8 @@ without requiring the function to return multiple values.
  * `total_loops` The total number of times the process looped
  * `total_spikes` The same as `length(times)` where `times` is the output of this function.
 
-based on the first algorithm outlined at http://freakonometrics.hypotheses.org/724
+This implementation is based on the first algorithm outlined at
+http://freakonometrics.hypotheses.org/724
 
 """
 function inhomogeneous_poisson_process(lam::Vector{Float64}, dt::Float64;
@@ -39,7 +40,8 @@ function inhomogeneous_poisson_process(lam::Vector{Float64}, dt::Float64;
     exit_status=Symbol[])
     # based on the first algorithm outlined at http://freakonometrics.hypotheses.org/724
     dt = dt/sampling_rate_factor
-    Lam = cumsum_kbn(kron(lam, ones(sampling_rate_factor)) * dt)
+    # Lam = cumsum_kbn(kron(lam, ones(sampling_rate_factor)) * dt)
+    Lam = cumsum_kbn(kron(lam, fill(dt, sampling_rate_factor)))
     times = Vector{Float64}()
     t_last = 0.0
     s = 0.0; t = 0.0
