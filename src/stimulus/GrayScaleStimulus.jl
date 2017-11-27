@@ -59,6 +59,25 @@ frame_size(S::GrayScaleStimulus) = S.px
 frame_time(S::GrayScaleStimulus) = S.frame_length_s
 n_frames(S::GrayScaleStimulus) = size(S.pixel_vals, 2)
 
+"""
+    time_to_index(S, t, relative_time=false)
+
+The index of the frame that is on screen at time `t`. If `relative_time=true`,
+interprets `t` as seconds since `S.onset`, otherwise interprets as absolute
+time.
+
+"""
+time_to_index(S::GrayScaleStimulus, t::Float64, relative_time::Bool=false) = 1 + floor(Int, (relative_time ? t : t - S.onset)/frame_time(S))
+
+"""
+    index_to_time(S, idx, relative_time=false)
+
+The time at which frame number `idx` is displayed on screen, with the first
+frame appearing at time `S.onset` (or `0.0` if `relative_time=true`)
+
+"""
+index_to_time(S::GrayScaleStimulus, idx::Integer, relative_time::Bool=false) = (idx - 1) * frame_time(S) + (relative_time ? 0.0 : S.onset)
+
 _pixel_values_to_float(v::BitArray, negative::Bool) = negative ? (-1.0) .^ (.!v) : Matrix{Float64}(v)
 _pixel_values_to_float(v::Array{UInt8}, negative::Bool) = _pixel_values_to_float(v / 255.0, negative)
 _pixel_values_to_float(v, negative::Bool) = negative ? 2.0 * v .- 1.0 : Matrix{Float64}(v)

@@ -49,7 +49,7 @@ Programmatically, this means:
  * `r::Vector{Float64}` is probably a rate computed from `STRF_response`
  * `n::Vector{Float64}` is probably a single neuron's spike histogram
  * `phi(x, theta)` should accept vectors `x` and `theta` and return a vector the same length as `x`
- * `Q(v,w)` should accept two vectors and return a single number
+ * `Q(L,n)` should accept two vectors and return a single number
 
 Some keyword arguments:
  * `objective=:min` whether to maximizer or minimize `Q`
