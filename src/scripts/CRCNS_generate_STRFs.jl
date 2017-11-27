@@ -146,8 +146,9 @@ for mat_file in mat_files
         sim_spikes = SpikeTrains(ST_simulated, spikes.I;
             comment="Simulated spike train for CRCNS data $mat_file, recording index $rec_idx",
             CRCNS_script_version=CRCNS_script_version,
-            poisson_status=ST_status)
+            poisson_status=ST_status, poisson_rate=L)
         hide_metadata!(sim_spikes, :poisson_status)
+        hide_metadata!(sim_spikes, :poisson_rate)
         sim_hist = histogram(sim_spikes, frame_time(stim); N_bins=n_frames(stim))
         sim_STRFs = compute_STRFs(sim_hist, stim)
         println("done")
