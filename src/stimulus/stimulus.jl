@@ -83,10 +83,11 @@ include("GrayScaleStimulus.jl")
 include("STRF_response.jl")
 include("CRCNS/CRCNS_Stimulus.jl")
 include("animation.jl")
+include("Ganmor/Ganmor_stimulus.jl")
 
 export show, frame_size, frame_time, frame_rate, n_frames, matrix_form, frame_image,
        time_to_index, index_to_time,
-       GrayScaleStimulus, CRCNS_Stimulus,
+       GrayScaleStimulus, CRCNS_Stimulus, Ganmor_Stimulus,
        compute_STRFs, STRF_response, scale_response,
        animated_gif
 
