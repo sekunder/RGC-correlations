@@ -35,6 +35,13 @@ type IsingDistribution <: AbstractBinaryVectorDistribution
     end
 end
 
+function show(io::IO, P::IsingDistribution)
+    println(io, "Ising Distribution")
+    println(io, "N_neurons: $(n_bits(P))")
+    println(io, "Indices:   $(P.I)")
+    show_metadata(io, P)
+end
+
 ################################################################################
 #### Miscellaneous computations/internal functions
 ################################################################################
@@ -65,6 +72,7 @@ end
 function entropy2(P::IsingDistribution)
     if !haskey(P.metadata, :entropy2)
         energies = _get_energies(P)
+        # TODO bug fix: missing a factor of log2(e).
         # P.metadata[:entropy] = log(_get_Z(P)) + sum_kbn([exp(-_E_Ising(P,digits(Bool,2,x,n_bits(P)))) for x in 0:(2^n_bis(P) - 1)])
         P.metadata[:entropy2] = log2(_get_Z(P)) + sum_kbn(exp.(-energies) .* energies) / _get_Z(P)
     end
@@ -94,14 +102,6 @@ function pdf(ID::IsingDistribution, x::Union{Vector{Bool},BitVector})
         # end
         # return p
     end
-end
-
-
-function show(io::IO, P::IsingDistribution)
-    println(io, "Ising Distribution")
-    println(io, "N_neurons: $(n_bits(P))")
-    println(io, "Indices:   $(P.I)")
-    show_metadata(io, P)
 end
 
 

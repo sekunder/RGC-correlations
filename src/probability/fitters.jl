@@ -100,7 +100,7 @@ function _NLopt_second_order_model(X::Union{Matrix{Bool},BitMatrix}, I=1:size(X,
 
     # let's try only writing one method, since the only difference is the
     # function and max/min.
-    alg = pop!(dkwargs,:algorithm,:LD_LBFGS)
+    alg = pop!(dkwargs, :algorithm, :LD_LBFGS)
     opt_Ising = Opt(alg, N_neurons^2)
 
     if fun == "loglikelihood"

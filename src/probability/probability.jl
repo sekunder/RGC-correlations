@@ -43,14 +43,6 @@ mess you up if `length(x) > 63`
 _binary_to_int(x::BitVector) = Int(x.chunks[1])
 _binary_to_int(x::Vector{Bool}) = dot([2^i for i = 0:(length(x) - 1)], x)
 
-# """
-#     get_pdf(P), get_cdf(P)
-#
-# Internally-used function to return a vector of the PDF of the distribution.
-# Naive implementation just calls pdf(P,x) over all possible x. Note that for this
-# internal method to work correctly, pdf(P,x) should cache the value in
-# P.cache[:pdf] as a side effect.
-# """
 """
     get_pdf(P)
 

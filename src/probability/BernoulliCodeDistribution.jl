@@ -14,6 +14,21 @@ type BernoulliCodeDistribution <: AbstractBinaryVectorDistribution
     end
 end
 
+function show(io::IO, P::BernoulliCodeDistribution)
+    println(io,"Bernoulli Code Distribution")
+    println(io,"N_neurons: $(n_bits(P))")
+    println(io,"p_i's:     $(P.p)")
+    show_metadata(io, P)
+    # if isempty(P.metadata)
+    #     println(io, "No metadata found")
+    # else
+    #     println(io, "Metadata:")
+    #     for (k,v) in P.metadata
+    #         println(io, "\t$k : $v")
+    #     end
+    # end
+end
+
 n_bits(B::BernoulliCodeDistribution) = length(B.p)
 
 function pdf(Pr::BernoulliCodeDistribution, x::Union{Vector{Bool},BitVector})
@@ -42,21 +57,6 @@ function pdf(Pr::BernoulliCodeDistribution, x::Union{Vector{Bool},BitVector})
 end
 
 
-
-function show(io::IO, P::BernoulliCodeDistribution)
-    println(io,"Bernoulli Code Distribution")
-    println(io,"N_neurons: $(n_bits(P))")
-    println(io,"p_i's:     $(P.p)")
-    show_metadata(io, P)
-    # if isempty(P.metadata)
-    #     println(io, "No metadata found")
-    # else
-    #     println(io, "Metadata:")
-    #     for (k,v) in P.metadata
-    #         println(io, "\t$k : $v")
-    #     end
-    # end
-end
 
 function expectation_matrix(B::BernoulliCodeDistribution)
     em = B.p * B.p'

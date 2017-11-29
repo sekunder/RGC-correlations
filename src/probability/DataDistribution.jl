@@ -46,17 +46,11 @@ type DataDistribution <: AbstractBinaryVectorDistribution
     #     new(P/m, N, X, I, Dict(kwargs), Dict())
     # end
 end
+#TODO To practice good code hygiene, I should put a comment here that says what
+#these functions do! It doesn't have to be long, but it'll help anyone else who
+#ever reads this code.
 _compute_Xtilde(X::Matrix{Bool}) = 1 .+ sum(X .* [2^i for i = 0:(size(X,1)-1)], 1)
 _compute_Xtilde(X::BitMatrix) = [1 + Int(X[:,k].chunks[1]) for k = 1:size(X,2)]
-
-
-n_bits(DD::DataDistribution) = DD.N
-
-pdf(Pr::DataDistribution, x::Vector{Bool}) = length(x) == n_bits(Pr) ? Pr.P[1 + dot([2^i for i = 0:(Pr.N - 1)], x)] : error("DataDistribution pdf: out of domain error")
-pdf(Pr::DataDistribution, x::BitVector) = length(x) == n_bits(Pr) ? Pr.P[1 + Int(x.chunks[1])] : error("DataDistribution pdf: out of domain error")
-
-get_pdf(DD::DataDistribution) = full(DD.P)
-
 
 function show(io::IO, P::DataDistribution)
     println(io, "Data Distribution")
@@ -73,6 +67,16 @@ function show(io::IO, P::DataDistribution)
     #     end
     # end
 end
+
+
+n_bits(DD::DataDistribution) = DD.N
+
+#TODO let's replace these two with a single pdf(Pt::DataDistribution, x::Union{Vector{Bool},BitVector}) using the _binary_to_int functions
+pdf(Pr::DataDistribution, x::Vector{Bool}) = (length(x) == n_bits(Pr)) ? Pr.P[1 + dot([2^i for i = 0:(Pr.N - 1)], x)] : error("DataDistribution pdf: out of domain error")
+pdf(Pr::DataDistribution, x::BitVector) = (length(x) == n_bits(Pr)) ? Pr.P[1 + Int(x.chunks[1])] : error("DataDistribution pdf: out of domain error")
+
+get_pdf(DD::DataDistribution) = full(DD.P)
+
 
 expectation_matrix(DD::DataDistribution) = DD.X * DD.X' / size(DD.X,2)
 
