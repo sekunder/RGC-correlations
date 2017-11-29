@@ -10,7 +10,6 @@ experiments.
 function Ganmor_Stimulus(filename; verbose=0, kwargs...)
 
     movie = matread(filename)["Movie"]
-    # movie = read(filename, "Movie") # MAT.jl has some weird bug, not gonna try and figure it out.
     N_frames, ht, wd = size(movie)
     N = [wd, ht]
     d = [1,1]
