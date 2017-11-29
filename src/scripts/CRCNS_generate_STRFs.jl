@@ -85,6 +85,9 @@ for mat_file in mat_files
     println("* Processing file $mat_file")
     # poor planning on my part means I still have to open the damn files here to
     # get the number of recording indexes. Oh well.
+
+    #TODO Hygiene/sanitation! Let's plop this into a try/catch block so that if
+    #the file doesnt exist, we skip it gracefully.
     vars = matread(joinpath(data_dir, mat_file))
     recordings = 1:length(vars["datainfo"]["RecNo"])
     # recordings = [2]
