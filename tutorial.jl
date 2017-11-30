@@ -15,7 +15,7 @@ z = 3.0 + 4im # complex numbers wowzers!
 """ Each of these variables has a type, which you can view with `typeof` """
 typeof(a)
 typeof(b)
-typeof(c)
+typeof(c) # Some languages would return 0, because Int/Int returns Int. Not so in Julia
 typeof(d)
 typeof(z)
 """ We'll get back to those curly braces shortly. """
@@ -34,7 +34,7 @@ typeof(a) <: Number # another way to do that
 isa(a, Number) == (typeof(a) <: Number) # oh good, these comparisons match
 isa(a, Real)
 isa(a, Integer)
-isa(a, Rational) # Remember, `Rational` is a data type, not the mathematical set
+isa(a, Rational) # Remember, `Rational` and `Integer` are a data types, not the mathematical sets
 isa(a, Float64)
 isa(a, Float32)
 
@@ -56,8 +56,11 @@ numbers. We have three options:
 2. f(x::Number) = x^2 and f(x::Complex) = norm(x)
 3. f(x) = x^2 and f(x::Complex) = norm(x)
 
-Option 1 is intuitive, but options 2 and 3 work  because Julia will find the
-most specific version of the function to apply.  """
+Option 1 is intuitive, but options 2 and 3 work because Julia will find the most
+specific version of the function to apply. Try defining f as in option 3 below,
+and then see what happens when enter `f(helpful_string)` in the console. """
+
+# Give two definitions of f here!
 
 
 """ Only abstract types are allowed to have subtypes. Concrete types do not have
@@ -69,14 +72,15 @@ B = [1.0 2.0 3.0; 4.0 5.0 6.0]
 """ A and B are both `Array`s, so each of these returns true: """
 isa(A, Array)
 typeof(B) <: Array
-""" But this is false, even though Int64 and Float64 are both subtypes of any: """
+""" But this is false, even though Int64 and Float64 are both subtypes of Any and Number: """
 typeof(B) <: Array{Any,2}
-typeof(B) <: Array{Any}
+typeof(B) <: Array{Number}
 
 A == B # should this return true or false? Why?
 
 """ A Julia convention is that functions with . in the name act elementwise, and
-function names that end with ! will modify their arguments in-place. """
+function names that end with ! will modify their arguments in-place (as opposed
+to returning a brand new object, as is usually the case) """
 
 A .== B # dots indicate that the function operates elementwise
 exp.(A)
