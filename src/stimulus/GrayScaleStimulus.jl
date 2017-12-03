@@ -21,9 +21,9 @@ type GrayScaleStimulus{T<:AbstractArray} <: AbstractStimulus
     # the actual values for the screen
     pixel_vals::T
     # the dimensions on screen
-    N::Vector{Int}
-    px::Vector{Int}
-    d::Vector{Int}
+    N::Vector{Int} # resolution of the image (number of distinct patches)
+    px::Vector{Int} # the number of pixels in the full image
+    d::Vector{Int} # size of each patch
     mm_per_px::Float64
     # timing. frame_rate = 1/frame_length_s
     frame_length_s::Float64
@@ -58,6 +58,7 @@ end
 frame_size(S::GrayScaleStimulus) = S.px
 frame_time(S::GrayScaleStimulus) = S.frame_length_s
 n_frames(S::GrayScaleStimulus) = size(S.pixel_vals, 2)
+resolution(S::GrayScaleStimulus) = S.N
 
 """
     time_to_index(S, t, relative_time=false)
@@ -78,16 +79,16 @@ frame appearing at time `S.onset` (or `0.0` if `relative_time=true`)
 """
 index_to_time(S::GrayScaleStimulus, idx::Integer, relative_time::Bool=false) = (idx - 1) * frame_time(S) + (relative_time ? 0.0 : S.onset)
 
-_pixel_values_to_float(v::BitArray, negative::Bool) = negative ? (-1.0) .^ (.!v) : Matrix{Float64}(v)
-_pixel_values_to_float(v::Array{UInt8}, negative::Bool) = _pixel_values_to_float(v / 255.0, negative)
-_pixel_values_to_float(v, negative::Bool) = negative ? 2.0 * v .- 1.0 : Matrix{Float64}(v)
-
 """
     matrix_form(S)::Matrix{Float64}
 
 Returns a minimal representation of `S` for performing computations.
 """
-matrix_form(S::GrayScaleStimulus) = _pixel_values_to_float(S.pixel_vals, S.zerotonegative)
+matrix_form(S::GrayScaleStimulus, frames=1:size(S.pixel_vals,2)) = _pixel_values_to_float(S.pixel_vals[:,frames], S.zerotonegative)
+
+_pixel_values_to_float(v::BitArray, negative::Bool) = negative ? (-1.0) .^ (.!v) : Matrix{Float64}(v)
+_pixel_values_to_float(v::Array{UInt8}, negative::Bool) = _pixel_values_to_float(v / 255.0, negative)
+_pixel_values_to_float(v, negative::Bool) = negative ? 2.0 * v .- 1.0 : Matrix{Float64}(v)
 
 """
     frame_image(S, indexes)
