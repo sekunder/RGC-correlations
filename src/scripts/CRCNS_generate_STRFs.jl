@@ -23,14 +23,8 @@ Usage:
 # 2. for each STRF: compute response to stimulus, scale response, generate spike trains using scaled response.
 include("../util/init.jl")
 using MAT, JLD
-# include("../probability/probability.jl")
-# include("../spikes/spikes.jl")
-# include("../stimulus/stimulus.jl")
 include("../util/CRCNS/analysis_functions.jl")
 include("../util/nonlinearities.jl")
-# include("../util/misc.jl")
-# include("../util/constants.jl")
-# using Spikes, Stimulus, Probability
 
 cline_args = process_args(ARGS; parse_flags=["verbose", "poisson_time","poisson_loops","poisson_spikes"], bool_flags=["help","defaults"])
 verbose = get(cline_args,"verbose",[0])[1]
@@ -46,7 +40,8 @@ end
 
 println("-" ^ 80)
 println("CRCNS_generate_STRFs $CRCNS_script_version")
-# println(help_string)
+println("For help, run")
+println("    [julia] $(@__FILE__) --help")
 
 data_dir = get(cline_args,"dir",[CRCNS_data_dir])[1]
 output_dir_real = get(cline_args, "output_dir_real", [joinpath(CRCNS_STRF_dir, "real")])[1]
@@ -80,6 +75,8 @@ println("\tLoops    : $poisson_loops")
 println("\tSpikes   : $poisson_spikes")
 println("Preparing to process these files:")
 println("\t$(join(mat_files,"\n\t"))")
+
+# We're gonna try making this parallel
 
 for mat_file in mat_files
     println("* Processing file $mat_file")
