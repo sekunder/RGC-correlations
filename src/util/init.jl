@@ -5,7 +5,7 @@
 include("../probability/probability.jl")
 include("../spikes/spikes.jl")
 include("../stimulus/stimulus.jl")
-using Spikes, Stimulus, Probability
+@everywhere using Spikes, Stimulus, Probability
 include("../util/constants.jl")
 include("../util/misc.jl")
 include("../util/metadata.jl")
