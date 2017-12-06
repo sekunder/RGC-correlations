@@ -9,13 +9,20 @@ indicated recording from the given file. Includes this information in the
 metadata.
 
 """
-function CRCNS_Stimulus(mat_file::String, recording_index::Int; verbose=0, single_rec=false, kwargs...)
+function CRCNS_Stimulus(mat_file::String, recording_index::Int; verbose=0, single_rec=false, kwargs...)::Nullable{GrayScaleStimulus}
     fname = basename(mat_file)
     floc = dirname(abspath(mat_file))
     if verbose > 0
         println("CRCNS_Stimulus: Reading CRCNS stimulus data from file: $(joinpath(floc, fname))")
     end
-    vars = matread(joinpath(floc, fname))
+    vars = try
+        matread(joinpath(floc, fname))
+    catch y
+        if verbose > 0
+            println("CRCNS_Stimulus: Error reading file.")
+        end
+        return Nullable{GrayScaleStimulus}()
+    end
 
     # because matlab is terrible (or perhaps just the way MAT opens matlab files
     # is terrible...), I need to work around the possibility that the number of
@@ -57,7 +64,14 @@ function CRCNS_Stimulus(mat_file::String, recording_index::Int; verbose=0, singl
         temp_N_frames += 1
     end
     stimulus = falses(prod(N), temp_N_frames)
-    read!(bin_file, stimulus)
+    try
+        read!(bin_file, stimulus)
+    catch y
+        if verbose > 0
+            println("CRCNS_Stimulus: Error loading binary data.")
+        end
+        return Nullable{GrayScaleStimulus}()
+    end
     stimulus = stimulus[:,1:N_frames]
 
     # new(floc, fname, recording_index, vars["datainfo"]["RecNo"][recording_index],

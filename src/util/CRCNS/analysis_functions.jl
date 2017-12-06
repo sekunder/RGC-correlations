@@ -31,11 +31,18 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
         if verbose > 0
             println("CRCNS_output_STRFs: making directory $(abspath(output_dir))")
         end
-        mkpath(output_dir)
+        try
+            mkpath(output_dir)
+        catch y
+            if verbose > 0
+                println("CRCNS_output_STRFs: error making directory $(abspath(output_dir))")
+            end
+            rethrow(y)
+        end
     end
 
     single_rec = pop!(dkwargs,:single_rec,false)
-    stim = CRCNS_Stimulus(mat_file, rec_idx; verbose=verbose, single_rec=single_rec)
+    stim = get(CRCNS_Stimulus(mat_file, rec_idx; verbose=verbose, single_rec=single_rec))
     spikes = Spikes.CRCNS_get_spikes_from_file(mat_file, rec_idx)
     idx = index_set_to_int(spikes.I)
     filename = "$base_name-$(rec_idx)_STRF_$idx.jld"
@@ -46,8 +53,16 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
     file_exists = ispath(joinpath(output_dir, filename))
     STRF_exists = false
     if file_exists
-        d = load(joinpath(output_dir, filename))
-        STRF_exists = d["CRCNS_script_version"] == CRCNS_script_version
+        existing_jld_data = try
+                load(joinpath(output_dir, filename))
+            catch y
+                if verbose > 0
+                    println("CRCNS_output_STRFs: attempted reading jld file, failed.")
+                    show(y)
+                end
+                Dict("CRCNS_script_version"=>v"0.0")
+            end
+        STRF_exists = existing_jld_data["CRCNS_script_version"] >= CRCNS_script_version
     end
     if !file_exists || !STRF_exists
         STRFs = compute_STRFs(spike_hist, stim)
@@ -56,13 +71,20 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
         if verbose > 0
             println("CRCNS_output_STRFs: reading jld file $(joinpath(output_dir, filename))")
         end
-        STRFs = d["STRFs"]
+        STRFs = existing_jld_data["STRFs"]
     end
     if !file_exists
         if verbose > 0
             println("CRCNS_output_STRFs: writing jld file $(joinpath(output_dir, filename))")
         end
-        save(joinpath(output_dir, filename), "CRCNS_script_version", CRCNS_script_version, "STRFs", STRFs, "timestamp", timestamp)
+        try
+            save(joinpath(output_dir, filename), "CRCNS_script_version", CRCNS_script_version, "STRFs", STRFs, "timestamp", timestamp)
+        catch y
+            if verbose > 0
+                println("CRCNS_output_STRFs: error writing jld file.")
+                show(y)
+            end
+        end
     end
     return stim, spikes, spike_hist, STRFs
 end
