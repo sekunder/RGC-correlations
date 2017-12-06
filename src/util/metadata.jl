@@ -7,7 +7,7 @@ I've written for this project involves a metadata field, I figured it would be
 beneficial to move this to a universally accessible location.
 
 """
-@everywhere function show_metadata(io::IO, A::Any)
+function show_metadata(io::IO, A::Any)
     if isempty(A.metadata)
         println(io, "No metadata found")
     else
@@ -27,7 +27,7 @@ is not set. Honestly completely unnecessary except to make scripts a little more
 readable.
 
 """
-@everywhere metadata(A::Any, k::Any, default=:none) = get(A.metadata, k, default)
+metadata(A::Any, k::Any, default=:none) = get(A.metadata, k, default)
 
 """
     metadata!(A::Any, k::Any, v::Any=:none)
@@ -35,7 +35,7 @@ readable.
 Convenience function, sets metadata for `A`. Can be called without third
 argument to ensure key `k` exists in `A`'s metadata.
 """
-@everywhere metadata!(A::Any, k::Any, v::Any=:none) = get!(A.metadata, k, v)
+metadata!(A::Any, k::Any, v::Any=:none) = get!(A.metadata, k, v)
 
 """
     hide_metadata!(A, k)
@@ -46,7 +46,7 @@ say, you want to store the spike quality in a `SpikeTrains` object, which would
 be a very long vector. If `k` is not a key in `A.metadata`, has no effect.
 
 """
-@everywhere function hide_metadata!(A, k)
+function hide_metadata!(A, k)
     if haskey(A.metadata, k)
         A.metadata[:hidden] = union(get!(A.metadata,:hidden,Any[]), [k])
     end
@@ -60,7 +60,7 @@ the key and the value for `k`. If `k` is not a key in `A.metadata`, has no
 effect.
 
 """
-@everywhere function unhide_metadata!(A, k)
+function unhide_metadata!(A, k)
     if haskey(A.metadata, k)
         A.metadata[:hidden] = setdiff(get!(A.metadata,:hidden,Any[]), [k])
     end

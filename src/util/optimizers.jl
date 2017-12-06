@@ -25,7 +25,7 @@ Stopping criteria (except vanishing gradient) can be set with keyword arguments.
  * `ftol_rel = 0.0` stop when `|F_cur - F_prev|/|F_cur| < ftol_rel`
 
 """
-@everywhere function gradient_optimizer(obj_fun, x0; objective=:min,
+function gradient_optimizer(obj_fun, x0; objective=:min,
     verbose::Int=0, print_eval::Int=100,
     lr::Float64=1.0, adjust_lr::Bool=(lr > 1.0),
     maxeval::Int=1000,
@@ -158,7 +158,7 @@ be any iterator that is indexed by a range of the form `1:N` and returns `Real`
 numbers (and reports `length(iter) = N`)
 
 """
-@everywhere function brute_force_optimizer(obj_fun, d::Integer; verbose=0,
+function brute_force_optimizer(obj_fun, d::Integer; verbose=0,
     objective=:min, kwargs...)
     if d == 3
         return brute_force_optimizer3(obj_fun, d; verbose=verbose, objective=objective, kwargs...)
@@ -167,7 +167,7 @@ numbers (and reports `length(iter) = N`)
         #MAYBEDO expand to any dimensionality
     end
 end
-@everywhere function brute_force_optimizer3(obj_fun, d; verbose=0,
+function brute_force_optimizer3(obj_fun, d; verbose=0,
     objective=:min, save_fun::Array{Float64}=[], kwargs...)
 
     d = 3
