@@ -17,7 +17,7 @@ Usage:
         --help : display this message and exit
 """
 
-@everywhere include("../util/init.jl")
+include("../util/init.jl")
 @everywhere using MAT, JLD
 @everywhere include("../util/CRCNS/analysis_functions.jl")
 @everywhere include("../util/nonlinearities.jl")

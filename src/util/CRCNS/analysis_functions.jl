@@ -20,7 +20,7 @@ Keyword argument `verbose` can be set to `0`,`1`, or `2`; `0` means no output;
 being saved), `2` means verbose output from functions called within this one.
 
 """
-function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_file));
+@everywhere function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_file));
     verbose=0, CRCNS_script_version=v"0.1", kwargs...)
     # fname = basename(mat_file)
     # floc = dirname(abspath(mat_file))
