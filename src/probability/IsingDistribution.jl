@@ -48,7 +48,9 @@ function _get_Z(ID::IsingDistribution)
         # ID.cache[:Z] = sum_kbn([exp(-_E_Ising(ID, digits(Bool, k, 2, n_bits(ID)))) for k = 0:(2^n_bits(ID) - 1)])
         ID.cache[:Z] = sum_kbn(exp.(-_get_energies(ID)))
     end
-    return ID.cache[:Z]
+    # Look I made a change to this function
+    return ID.cache[:Z] * 1.0
+end
 end
 
 ################################################################################
