@@ -4,7 +4,7 @@ $(@__FILE__)
 Computes STRFs for CRCNS data, taking advantage of multiple available cores.
 
 Usage:
-    [julia] $(baseneame(@__FILE__)) --defaults | --dir data_dir | file1 file2 ... [options]
+    [julia] $(basename(@__FILE__)) --defaults | --dir data_dir | file1 file2 ... [options]
     Processes files specified by first argument/flags:
         --defaults : read all .mat files in CRCNS_Data_dir, also sets output directories
         --dir data_dir : real all .mat files in dir
