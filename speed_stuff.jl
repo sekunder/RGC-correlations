@@ -49,7 +49,7 @@ println("      and $L_low \"low\" entries.")
 # I added a second loop later. To make my life easy, I used this initialization
 # block to avoid having to hardcode values in my loops.
 n_trials = 10^4
-n_rand = 10^5; rand_line = @__LINE__
+n_rand = 10^4; rand_line = @__LINE__
 unsorted_time = 0.0
 sorted_time = 0.0
 time_to_sort = 0.0
@@ -103,7 +103,7 @@ faster to look at a sorted list and just find the first entry larger than the
 threshold. So let's write a function that does that and see if we get a
 noticeable speed up.
 
-We define the following function:
+We define a function like the following:
 
     function count_high_low_by_sort(L, theta=0.5)
         L = sort(L)
@@ -135,12 +135,20 @@ for trial = 1:n_trials
     unsorted_time += toq()
 
     tic()
-    count_high_low_by_sort(R)
-    count_by_sort_time += toq()
-
-    tic()
     sort!(R)
     time_to_sort += toq()
+
+    tic()
+    searchsortedlast(R, 0.5)
+    count_by_sort_time += toq()
+
+    # tic()
+    # count_high_low_by_sort(R)
+    # count_by_sort_time += toq()
+    #
+    # tic()
+    # sort!(R)
+    # time_to_sort += toq()
 
     # tic()
     # count_high_low(R)
@@ -152,14 +160,16 @@ println()
 println("Average time to run count_high_low:               " * (@sprintf "%0.10f s" (unsorted_time/n_trials)) * " (a)")
 println("Average time to run count_high_low_by_sort:       " * (@sprintf "%0.10f s" (count_by_sort_time/n_trials)) * " (b)")
 println("Average time to sort the list:                    " * (@sprintf "%0.10f s" (time_to_sort/n_trials)) * " (c)")
-println("Average time to perform binary search:            " * (@sprintf "%0.10f s" ((count_by_sort_time - time_to_sort)/n_trials)) * " (b) - (c)")
+# println("Average time to perform binary search:            " * (@sprintf "%0.10f s" ((count_by_sort_time - time_to_sort)/n_trials)) * " (b) - (c)")
 println()
 
+# (a)/((b) - (c)) =
+# Speedup from binary search:  *** $(unsorted_time/(count_by_sort_time - time_to_sort)) ***
 println("""
 Again, the speedup is overshadowed by the time to sort the list. But,
 subtracting out the average time it takes to sort the list, we get a speedup of
- (a)/((b) - (c)) =
-Speedup from binary search:  *** $(unsorted_time/(count_by_sort_time - time_to_sort)) ***
+ (a) / (b) =
+Speedup from binary search:  *** $(unsorted_time/count_by_sort_time)
 
 Compare to the speedup we got just from using the naive version of the function, with a sorted list:
 
@@ -167,7 +177,12 @@ Speedup from sorting:        *** $(sort_speedup) ***
 """)
 
 println("""
+
 What I've been talking about is really the asymptotic behvaior of these
-algorithms. Change the value of n_rand to 10^5 on line $(rand_line) and see what
+algorithms. First of all, if you are running this from an interactive julia
+session, try running it again -- the numbers should actually start shifting in
+favor of `count_high_low`, probably because of wizardry (technical term).
+
+Change the value of n_rand to 10^5 on line $(rand_line) and see what
 happens to all these numbers.
 """)
