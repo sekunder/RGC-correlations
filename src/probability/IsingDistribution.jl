@@ -66,7 +66,7 @@ function entropy2(P::IsingDistribution)
     if !haskey(P.metadata, :entropy2)
         energies = _get_energies(P)
         # P.metadata[:entropy] = log(_get_Z(P)) + sum_kbn([exp(-_E_Ising(P,digits(Bool,2,x,n_bits(P)))) for x in 0:(2^n_bis(P) - 1)])
-        P.metadata[:entropy2] = log2(_get_Z(P)) + sum_kbn(exp.(-energies) .* energies) / _get_Z(P)
+        P.metadata[:entropy2] = log2(_get_Z(P)) + log2(e) * sum_kbn(exp.(-energies) .* energies) / _get_Z(P)
     end
     return P.metadata[:entropy2]
 end
