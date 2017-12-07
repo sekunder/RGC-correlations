@@ -85,7 +85,13 @@ for mat_file in mat_files
     println("* Processing file $mat_file")
     # poor planning on my part means I still have to open the damn files here to
     # get the number of recording indexes. Oh well.
-    vars = matread(joinpath(data_dir, mat_file))
+    vars = try
+            matread(joinpath(data_dir, mat_file))
+        catch y
+            println("! Error occurred, skipping file.")
+            show(y)
+            continue
+        end
     recordings = 1:length(vars["datainfo"]["RecNo"])
     # recordings = [2]
     vars = 0 # just a hint for garbage collecion
