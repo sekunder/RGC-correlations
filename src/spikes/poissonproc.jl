@@ -55,12 +55,18 @@ function inhomogeneous_poisson_process(lam::Vector{Float64}, dt::Float64;
         idx = searchsortedlast(Lam, s)
         t = idx * dt
         if Tmax > t > t_last
+            # Avoid repeated spikes by comparing to t_last
             push!(times, t)
             t_last = t
             n_spikes += 1
         end
         real_time += toq()
         n_loops += 1
+        if idx == length(Lam)
+            # if we've hit the end of Lam, then we should quit while we're ahead
+            push!(exit_status,:end_of_lambda_reached)
+            break
+        end
         if 0.0 < max_real_time < real_time
             push!(exit_status,:max_real_time_reached)
             break
