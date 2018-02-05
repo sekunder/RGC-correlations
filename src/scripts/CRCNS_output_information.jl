@@ -121,7 +121,7 @@ for sim_file in sim_jld_files
     try
         real_spikes = Spikes.CRCNS_get_spikes_from_file(joinpath(data_dir, "$root_name.mat"), rec_idx)
     catch y
-        println("! Exception occurred. Skipping file.")
+        println("! Exception occurred while loading real spikes. Skipping file.")
         show(y)
         continue
     end
@@ -129,7 +129,7 @@ for sim_file in sim_jld_files
     try
         sim_spikes = load(joinpath(sim_jld_dir, sim_file), "spikes")
     catch y
-        println("! Exception occurred. Skipping file.")
+        println("! Exception occurred while loading simulated spikes. Skipping file.")
         show(y)
         continue
     end
@@ -168,6 +168,7 @@ for sim_file in sim_jld_files
     end
     try
         jldopen(joinpath(information_dir, "$root_name-$rec_idx.jld"), "w") do file
+            addrequire(file, BinaryVectorProbability)
             for sample_size in size_range
                 index_set = zeros(Int, sample_size)
                 for trial = 1:min(n_trials, binomial(n_cells(real_spikes), sample_size))
