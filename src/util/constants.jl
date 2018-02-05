@@ -8,7 +8,7 @@ CRCNS_STRF_dir = joinpath(CRCNS_analysis_dir, "STRF")
 CRCNS_information_dir = joinpath(CRCNS_analysis_dir, "information")
 CRCNS_plots_dir = joinpath(CRCNS_analysis_dir, "plots")
 
-CRCNS_script_version = v"0.3"
+CRCNS_script_version = v"0.4"
 
 Ganmor_dir = joinpath(base_dir, "ganmor-retina-data")
 Ganmor_analysis_dir = joinpath(Ganmor_dir, "analysis")
