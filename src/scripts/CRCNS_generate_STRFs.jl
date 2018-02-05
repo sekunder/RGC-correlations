@@ -14,7 +14,8 @@ Usage:
     --verbose 0|1|2 : controls verbosity of output
     --output_dir_real path, --output_dir_sim path : where to write .jld files
     --skip file1 file2 ... : which files to skip (including overriding defaults)
-    --poisson_time t, --poisson_loops n, --poisson_spikes m : Stop poisson process generation if it lasts longer than t seconds, n loops, or m spikes
+    --poisson_time t, --poisson_loops n, --poisson_spikes m : Stop poisson process generation if it lasts longer than t seconds, n loops, or m spikes.
+        By default, uses 600.0 s (no value for loops, spikes)
     --help : display this message and exit
 """
 # CRCNS_script_version=v"0.3"
@@ -34,7 +35,7 @@ include("../util/nonlinearities.jl")
 
 cline_args = process_args(ARGS; parse_flags=["verbose", "poisson_time","poisson_loops","poisson_spikes"], bool_flags=["help","defaults"])
 verbose = get(cline_args,"verbose",[0])[1]
-poisson_time = Float64(get(cline_args,"poisson_time",[0.0])[1])
+poisson_time = Float64(get(cline_args,"poisson_time",[600.0])[1])
 poisson_loops = get(cline_args,"poisson_loops",[0])[1]
 poisson_spikes = get(cline_args,"poisson_spikes",[0])[1]
 
@@ -131,7 +132,7 @@ for mat_file in mat_files
             L[:,idx], theta_opt, Q_opt = scale_response(r, n, sigmoid, (u,v) -> (norm(u * tau - v) / length(u)); d=3, ranges=theta_ranges, save_fun=Float64[])
             print("s|")
 
-            if verbose > 0
+            if verbose > 1
                 expected_spikes = sum_kbn((L[:,idx] * tau)[:])
                 print("[Expected #spikes = $expected_spikes]")
             end
@@ -142,7 +143,7 @@ for mat_file in mat_files
                 sampling_rate_factor=10, max_real_time=poisson_time, max_loops=poisson_loops, max_spikes=poisson_spikes,
                 exit_status=ST_status[idx], total_time=time_arr)
             print("p")
-            if verbose > 0
+            if verbose > 1
                 print("[Got $(length(ST_simulated[idx])) spikes in $(time_arr[1]) s]")
             end
             print("] ")
@@ -165,7 +166,15 @@ for mat_file in mat_files
         indexes = index_set_to_int(sim_spikes.I)
         sim_filename = "$(remove_extension(mat_file))-$(rec_idx)_simulated_$indexes.jld"
         println("    Writing simulated spike trains and computed STRFs to $(joinpath(output_dir_sim,sim_filename))")
-        save(joinpath(output_dir_sim, sim_filename), "CRCNS_script_version", CRCNS_script_version, "timestamp", now(), "STRFs", sim_STRFs, "spikes", sim_spikes)
+        # save(joinpath(output_dir_sim, sim_filename), "CRCNS_script_version", CRCNS_script_version, "timestamp", now(), "STRFs", sim_STRFs, "spikes", sim_spikes)
+        jldopen(joinpath(output_dir_sim, sim_filename)) do file
+            addrequire(file, Spikes)
+            addrequire(file, GrayScaleStimuli)
+            write(file, "CRCNS_script_version", CRCNS_script_version)
+            write(file, "timestamp", now())
+            write(file, "STRFs", sim_STRFs)
+            write(file, "spikes", sim_spikes)
+        end
     end
 end
 
