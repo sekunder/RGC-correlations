@@ -107,7 +107,7 @@ for mat_file in mat_files
                 println("  Found file $rf using script version $cv_r. Skipping processing.")
                 continue
             end
-            cv_s = read(joinpath(output_dir_sim, sf))
+            cv_s = read(joinpath(output_dir_sim, sf), "CRCNS_script_version")
             if cv_s < CRCNS_script_version
                 println("  Found file $sf using script version $cv_s. Skipping processing.")
                 continue
