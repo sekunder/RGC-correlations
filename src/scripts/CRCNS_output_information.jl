@@ -22,6 +22,7 @@ Usage:
 
 include("../util/init.jl")
 include("../util/CRCNS/analysis_functions.jl")
+include("../spikes/CRCNS/CRCNS.jl")
 using JLD
 
 # plan: loop through folder of simulated STRFs (those files also have spike
@@ -119,7 +120,7 @@ for sim_file in sim_jld_files
     real_spikes = 0
     sim_spikes = 0
     try
-        real_spikes = Spikes.CRCNS_get_spikes_from_file(joinpath(data_dir, "$root_name.mat"), rec_idx)
+        real_spikes = CRCNS_get_spikes_from_file(joinpath(data_dir, "$root_name.mat"), rec_idx)
     catch y
         println("! Exception occurred while loading real spikes. Skipping file.")
         show(y)

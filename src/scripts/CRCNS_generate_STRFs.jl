@@ -29,6 +29,7 @@ using MAT, JLD
 # include("../stimulus/stimulus.jl")
 include("../util/CRCNS/analysis_functions.jl")
 include("../util/nonlinearities.jl")
+include("../spikes/CRCNS/CRCNS.jl")
 include("../stimulus/CRCNS/CRCNS_Stimulus.jl")
 # include("../util/misc.jl")
 # include("../util/constants.jl")
