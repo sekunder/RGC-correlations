@@ -101,13 +101,25 @@ for mat_file in mat_files
         println("  Recording $rec_idx")
         real_files = filter(x -> startswith(x, "$(remove_extension(mat_file))-$rec_idx"), real_jld_files)
         sim_files = filter(x -> startswith(x, "$(remove_extension(mat_file))-$rec_idx"), sim_jld_files)
-        if !isempty(real_files) && !isempty(sim_files)
-            println("  Found files")
-            println("    Real: $(join(real_files,","))")
-            println("    Sim : $(join(sim_files,","))")
-            println("  Skipping processing.")
-            continue
+        for (rf, sf) in zip(real_files,sim_files)
+            cv_r = read(joinpath(output_dir_real, rf), "CRCNS_script_version")
+            if cv_r < CRCNS_script_version
+                println("  Found file $rf using script version $cv_r. Skipping processing.")
+                continue
+            end
+            cv_s = read(joinpath(output_dir_sim, sf))
+            if cv_s < CRCNS_script_version
+                println("  Found file $sf using script version $cv_s. Skipping processing.")
+                continue
+            end
         end
+        # if !isempty(real_files) && !isempty(sim_files)
+        #     println("  Found files")
+        #     println("    Real: $(join(real_files,","))")
+        #     println("    Sim : $(join(sim_files,","))")
+        #     println("  Skipping processing.")
+        #     continue
+        # end
         print("    Computing real STRFs...")
 
         stim, spikes, spike_hist, STRFs = CRCNS_output_STRFs(joinpath(data_dir, mat_file), rec_idx, output_dir_real;
