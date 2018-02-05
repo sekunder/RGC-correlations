@@ -181,7 +181,7 @@ for mat_file in mat_files
         sim_filename = "$(remove_extension(mat_file))-$(rec_idx)_simulated_$indexes.jld"
         println("    Writing simulated spike trains and computed STRFs to $(joinpath(output_dir_sim,sim_filename))")
         # save(joinpath(output_dir_sim, sim_filename), "CRCNS_script_version", CRCNS_script_version, "timestamp", now(), "STRFs", sim_STRFs, "spikes", sim_spikes)
-        jldopen(joinpath(output_dir_sim, sim_filename)) do file
+        jldopen(joinpath(output_dir_sim, sim_filename), "w") do file
             addrequire(file, Spikes)
             addrequire(file, GrayScaleStimuli)
             write(file, "CRCNS_script_version", CRCNS_script_version)
