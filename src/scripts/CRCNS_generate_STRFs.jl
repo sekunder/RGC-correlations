@@ -103,12 +103,12 @@ for mat_file in mat_files
         sim_files = filter(x -> startswith(x, "$(remove_extension(mat_file))-$rec_idx"), sim_jld_files)
         for (rf, sf) in zip(real_files,sim_files)
             cv_r = read(joinpath(output_dir_real, rf), "CRCNS_script_version")
-            if cv_r < CRCNS_script_version
+            if VersionNumber(cv_r) < CRCNS_script_version
                 println("  Found file $rf using script version $cv_r. Skipping processing.")
                 continue
             end
             cv_s = read(joinpath(output_dir_sim, sf), "CRCNS_script_version")
-            if cv_s < CRCNS_script_version
+            if VersionNumber(cv_s) < CRCNS_script_version
                 println("  Found file $sf using script version $cv_s. Skipping processing.")
                 continue
             end
