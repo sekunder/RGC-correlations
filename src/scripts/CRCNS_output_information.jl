@@ -160,7 +160,7 @@ for sim_file in sim_jld_files
 
     distros = Dict{String,AbstractBinaryVectorDistribution}()
     if isfile(joinpath(information_dir, "$root_name-$rec_idx.jld"))
-        print("  Found $root_name-$rec_idx.jld. Loading existing distributions.")
+        println("  Found $root_name-$rec_idx.jld. Loading existing distributions.")
         try
             distros = load(joinpath(information_dir, "$root_name-$rec_idx.jld"))
         catch y
@@ -202,7 +202,7 @@ for sim_file in sim_jld_files
                                         CRCNS_script_version=CRCNS_script_version, verbose=verbose,
                                         source="CRCNS/$root_name-$rec_idx ($YYY)", bin_size=bin_size)
                                 end
-                                if n_bits(P) <= Probability.ISING_METHOD_THRESHOLD
+                                if n_bits(P) <= BinaryVectorProbability.ISING_METHOD_THRESHOLD
                                     entropy(P)
                                 end
                                 distros[distro_name] = P
