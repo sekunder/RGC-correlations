@@ -124,6 +124,7 @@ for sim_file in sim_jld_files
     catch y
         println("! Exception occurred while loading real spikes. Skipping file.")
         show(y)
+        println()
         continue
     end
     println("  Loading simulated spikes from $sim_file")
@@ -132,6 +133,7 @@ for sim_file in sim_jld_files
     catch y
         println("! Exception occurred while loading simulated spikes. Skipping file.")
         show(y)
+        println()
         continue
     end
     if n_cells(real_spikes) != n_cells(sim_spikes)
@@ -165,6 +167,7 @@ for sim_file in sim_jld_files
             println("! Exception occurred. Ignoring $root_name-$rec_idx.jld")
             distros = Dict{String,AbstractBinaryVectorDistribution}()
             show(y)
+            println()
         end
     end
     try
@@ -216,6 +219,7 @@ for sim_file in sim_jld_files
         println()
         println("! Exception occurred while processing file $(joinpath(information_dir, "$root_name-$rec_idx.jld")). Skipping file.")
         show(y)
+        println()
         continue
     end
     push!(successful_files, sim_file)
