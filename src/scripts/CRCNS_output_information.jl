@@ -22,6 +22,7 @@ Usage:
 
 include("../util/init.jl")
 include("../util/CRCNS/analysis_functions.jl")
+include("../spikes/CRCNS/CRCNS.jl")
 using JLD
 
 # plan: loop through folder of simulated STRFs (those files also have spike
@@ -119,18 +120,20 @@ for sim_file in sim_jld_files
     real_spikes = 0
     sim_spikes = 0
     try
-        real_spikes = Spikes.CRCNS_get_spikes_from_file(joinpath(data_dir, "$root_name.mat"), rec_idx)
+        real_spikes = CRCNS_get_spikes_from_file(joinpath(data_dir, "$root_name.mat"), rec_idx)
     catch y
-        println("! Exception occurred. Skipping file.")
+        println("! Exception occurred while loading real spikes. Skipping file.")
         show(y)
+        println()
         continue
     end
     println("  Loading simulated spikes from $sim_file")
     try
         sim_spikes = load(joinpath(sim_jld_dir, sim_file), "spikes")
     catch y
-        println("! Exception occurred. Skipping file.")
+        println("! Exception occurred while loading simulated spikes. Skipping file.")
         show(y)
+        println()
         continue
     end
     if n_cells(real_spikes) != n_cells(sim_spikes)
@@ -157,17 +160,19 @@ for sim_file in sim_jld_files
 
     distros = Dict{String,AbstractBinaryVectorDistribution}()
     if isfile(joinpath(information_dir, "$root_name-$rec_idx.jld"))
-        print("  Found $root_name-$rec_idx.jld. Loading existing distributions.")
+        println("  Found $root_name-$rec_idx.jld. Loading existing distributions.")
         try
             distros = load(joinpath(information_dir, "$root_name-$rec_idx.jld"))
         catch y
             println("! Exception occurred. Ignoring $root_name-$rec_idx.jld")
             distros = Dict{String,AbstractBinaryVectorDistribution}()
             show(y)
+            println()
         end
     end
     try
         jldopen(joinpath(information_dir, "$root_name-$rec_idx.jld"), "w") do file
+            addrequire(file, BinaryVectorProbability)
             for sample_size in size_range
                 index_set = zeros(Int, sample_size)
                 for trial = 1:min(n_trials, binomial(n_cells(real_spikes), sample_size))
@@ -197,7 +202,7 @@ for sim_file in sim_jld_files
                                         CRCNS_script_version=CRCNS_script_version, verbose=verbose,
                                         source="CRCNS/$root_name-$rec_idx ($YYY)", bin_size=bin_size)
                                 end
-                                if n_bits(P) <= Probability.ISING_METHOD_THRESHOLD
+                                if n_bits(P) <= BinaryVectorProbability.ISING_METHOD_THRESHOLD
                                     entropy(P)
                                 end
                                 distros[distro_name] = P
@@ -214,6 +219,7 @@ for sim_file in sim_jld_files
         println()
         println("! Exception occurred while processing file $(joinpath(information_dir, "$root_name-$rec_idx.jld")). Skipping file.")
         show(y)
+        println()
         continue
     end
     push!(successful_files, sim_file)
