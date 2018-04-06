@@ -9,4 +9,6 @@ spikes_sim = load(joinpath(CRCNS_STRF_dir,"sim","20080516_R2-3_simulated_1717986
 
 X_sim_33554431 = transpose(raster(spikes_sim, 0.020))
 
-P_2_33554431 = second_order_model(X_sim_33554431, 1:25; verbose=2)
+P_1_33554431 = first_order_model(X_sim_33554431, 1:25, verbose=2)
+P_2_33554431 = second_order_model(X_sim_33554431, 1:25, verbose=2)
+P_N_33554431 = data_model(X_sim_33554431, 1:25, verbose=2)
