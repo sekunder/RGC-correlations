@@ -85,7 +85,8 @@ println("Preparing to process these files:")
 println("\t$(join(mat_files,"\n\t"))")
 
 @everywhere function process_file(mat_file)
-    lf = open(replace(abspath(@__FILE__), ".jl", ".$(myid()).log"), "a")
+    # lf = open(replace(abspath(@__FILE__), ".jl", ".$(myid()).log"), "a")
+    lf = open(joinpath(homedir(),"julia","CRCNS_generate_STRFs.$(myid()).log"), "a")
     println(lf, "* Processing file $mat_file")
     # poor planning on my part means I still have to open the damn files here to
     # get the number of recording indexes. Oh well.
