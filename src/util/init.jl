@@ -20,9 +20,9 @@ for (pkg_name, pkg_url) in unregistered_packages
         Pkg.clone(pkg_url)
     end
 end
-using BinaryVectorProbability, Spikes, GrayScaleStimuli
+@everywhere using BinaryVectorProbability, Spikes, GrayScaleStimuli
 
-include("../util/constants.jl")
-include("../util/misc.jl")
-include("../util/metadata.jl")
-include("../util/process_args.jl")
+@everywhere include("../util/constants.jl")
+@everywhere include("../util/misc.jl")
+@everywhere include("../util/metadata.jl")
+@everywhere include("../util/process_args.jl")

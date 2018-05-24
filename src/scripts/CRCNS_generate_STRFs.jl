@@ -1,11 +1,11 @@
 help_string = """
-$(@__FILE__)
+$(basename(@__FILE__))
 
 Computes STRFs for CRCNS data, then generates simulated data by presenting
 stimulus to those STRFs.
 
 Usage:
-  [julia] $(@__FILE__) --defaults | --dir data_dir | file1 file2 ... [options]
+  [julia] $(basename(@__FILE__)) --defaults | --dir data_dir | file1 file2 ... [options]
   Processes files specified by first argument/flags:
     --defaults : read all .mat files in CRCNS_Data_dir, also sets output directories
     --dir data_dir : real all .mat files in dir
@@ -83,6 +83,109 @@ println("\tLoops    : $poisson_loops")
 println("\tSpikes   : $poisson_spikes")
 println("Preparing to process these files:")
 println("\t$(join(mat_files,"\n\t"))")
+
+@everywhere function process_file(mat_file)
+    lf = open(replace(abspath(@__FILE__), ".jl", ".$(myid()).log"), "a")
+    println(lf, "* Processing file $mat_file")
+    # poor planning on my part means I still have to open the damn files here to
+    # get the number of recording indexes. Oh well.
+    vars = try
+            matread(joinpath(data_dir, mat_file))
+        catch y
+            println(lf, "! Error occurred, skipping file.")
+            # show(y)
+            println(lf, y)
+            rethrow(y)
+        end
+    recordings = 1:length(vars["datainfo"]["RecNo"])
+    # recordings = [2]
+    vars = 0 # just a hint for garbage collecion
+    println(lf, "  Found $(length(recordings)) recordings")
+    for rec_idx in recordings
+        println(lf, "  Recording $rec_idx")
+        # real_files = filter(x -> startswith(x, "$(remove_extension(mat_file))-$rec_idx"), real_jld_files)
+        # sim_files = filter(x -> startswith(x, "$(remove_extension(mat_file))-$rec_idx"), sim_jld_files)
+        # for (rf, sf) in zip(real_files,sim_files)
+        #     cv_r = read(joinpath(output_dir_real, rf), "CRCNS_script_version")
+        #     if VersionNumber(cv_r) < CRCNS_script_version
+        #         println("  Found file $rf using script version $cv_r. Skipping processing.")
+        #         continue
+        #     end
+        #     cv_s = read(joinpath(output_dir_sim, sf), "CRCNS_script_version")
+        #     if VersionNumber(cv_s) < CRCNS_script_version
+        #         println("  Found file $sf using script version $cv_s. Skipping processing.")
+        #         continue
+        #     end
+        # end
+        print(lf, "    Computing real STRFs...")
+
+        stim, spikes, spike_hist, STRFs = CRCNS_output_STRFs(joinpath(data_dir, mat_file), rec_idx, output_dir_real;
+            CRCNS_script_version=CRCNS_script_version, verbose=verbose, single_rec=(length(recordings) == 1))
+        println(lf, "done")
+        L = zeros(spike_hist)
+        ST_simulated = Vector{Vector{Float64}}(n_cells(spikes))
+        ST_status = Vector{Vector{Symbol}}(n_cells(spikes))
+        println(lf, "    Simulating $(n_cells(spikes)) cells, using phi = sigmoid, Q = norm(r * tau - n) / N_frames")
+        println(lf, "    [r = response computed | s = response scaled to match STRFs | p = poisson process spike train generated]")
+        print(lf, "      ")
+        for (idx, RF) in enumerate(STRFs)
+            print(lf, "$idx[")
+            (r,tau) = STRF_response(RF, stim, flip_STRF_time=true)
+            n = spike_hist[:,idx]
+            print(lf, "r|")
+
+            c_range = (1.0:0.1:maximum(n)) / tau
+            h_range = [10.0^k for k in 2.0:0.1:4.0]
+            x0_range = decimal_round(minimum(r),2):0.001:decimal_round(maximum(r),2)
+            theta_ranges = [c_range, h_range, x0_range]
+            L[:,idx], theta_opt, Q_opt = scale_response(r, n, sigmoid, (u,v) -> (norm(u * tau - v) / length(u)); d=3, ranges=theta_ranges, save_fun=Float64[])
+            print(lf, "s|")
+
+            if verbose > 1
+                expected_spikes = sum_kbn((L[:,idx] * tau)[:])
+                print(lf, "[Expected #spikes = $expected_spikes]")
+            end
+
+            ST_status[idx] = Vector{Symbol}()
+            time_arr = zeros(1)
+            ST_simulated[idx] = inhomogeneous_poisson_process(L[:,idx], tau;
+                sampling_rate_factor=10, max_real_time=poisson_time, max_loops=poisson_loops, max_spikes=poisson_spikes,
+                exit_status=ST_status[idx], total_time=time_arr)
+            print("p")
+            if verbose > 1
+                print(lf, "[Got $(length(ST_simulated[idx])) spikes in $(time_arr[1]) s]")
+            end
+            print(lf, "] ")
+        end
+
+        print(lf, "\n    Computing simulated STRFs...")
+        sim_spikes = SpikeTrains(ST_simulated, spikes.I;
+            comment="Simulated spike train for CRCNS data $mat_file, recording index $rec_idx",
+            CRCNS_script_version=CRCNS_script_version,
+            poisson_status=ST_status, poisson_rate=L)
+        hide_metadata!(sim_spikes, :poisson_status)
+        hide_metadata!(sim_spikes, :poisson_rate)
+        sim_hist = histogram(sim_spikes, frame_time(stim); N_bins=n_frames(stim))
+        sim_STRFs = compute_STRFs(sim_hist, stim)
+        println(lf, "done")
+        if verbose > 1
+            println(lf, sim_spikes)
+        end
+
+        indexes = index_set_to_int(sim_spikes.I)
+        sim_filename = "$(remove_extension(mat_file))-$(rec_idx)_simulated_$indexes.jld"
+        println(lf, "    Writing simulated spike trains and computed STRFs to $(joinpath(output_dir_sim,sim_filename))")
+        # save(joinpath(output_dir_sim, sim_filename), "CRCNS_script_version", CRCNS_script_version, "timestamp", now(), "STRFs", sim_STRFs, "spikes", sim_spikes)
+        jldopen(joinpath(output_dir_sim, sim_filename), "w") do file
+            addrequire(file, Spikes)
+            addrequire(file, GrayScaleStimuli)
+            write(file, "CRCNS_script_version", CRCNS_script_version)
+            write(file, "timestamp", now())
+            write(file, "STRFs", sim_STRFs)
+            write(file, "spikes", sim_spikes)
+        end
+    end
+end
 
 for mat_file in mat_files
     println("* Processing file $mat_file")
