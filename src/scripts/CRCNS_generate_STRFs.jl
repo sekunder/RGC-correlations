@@ -23,7 +23,7 @@ Usage:
 # 1. load the stimulus, call CRCNS_output_STRFs to save them to file
 # 2. for each STRF: compute response to stimulus, scale response, generate spike trains using scaled response.
 include("../util/init.jl")
-using MAT, JLD
+@everywhere using MAT, JLD
 # include("../probability/probability.jl")
 # include("../spikes/spikes.jl")
 # include("../stimulus/stimulus.jl")

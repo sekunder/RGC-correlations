@@ -20,7 +20,7 @@ Keyword argument `verbose` can be set to `0`,`1`, or `2`; `0` means no output;
 being saved), `2` means verbose output from functions called within this one.
 
 """
-function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_file));
+@everywhere function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_file));
     verbose=0, CRCNS_script_version=v"0.1", kwargs...)
     # fname = basename(mat_file)
     # floc = dirname(abspath(mat_file))
@@ -84,7 +84,7 @@ the same order (so `I_2_real[k][j]` is computed from the same index set as
 `I_2_sim[k][j]`)
 
 """
-function CRCNS_collect_entropy(dir=CRCNS_information_dir;
+@everywhere function CRCNS_collect_entropy(dir=CRCNS_information_dir;
     verbose=0, CRCNS_script_version=CRCNS_script_version, kwargs...)
 
     jld_files = filter(x -> endswith(x, ".jld"), readdir(dir))
