@@ -69,5 +69,6 @@ function CRCNS_Stimulus(mat_file::String, recording_index::Int; verbose=0, singl
     RecNo = Int(single_rec ? vars["datainfo"]["RecNo"] : vars["datainfo"]["RecNo"][recording_index])
     meta[:recording] = "Recording $RecNo (recording index $(recording_index))"
     meta[:source] = "CRCNS Binary Whitenoise stimulus"
-    return GrayScaleStimulus(stimulus, N, px, d, mm_per_px, frame_length_s, frame_rate, onset, true, merge(Dict(kwargs),meta))
+    meta[:mm_per_px] = mm_per_px
+    return GrayScaleStimulus(stimulus, N, px, d, frame_length_s, onset, true, merge(Dict(kwargs),meta))
 end
