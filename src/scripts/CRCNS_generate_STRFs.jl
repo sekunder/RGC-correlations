@@ -84,7 +84,7 @@ println("\tSpikes   : $poisson_spikes")
 println("Preparing to process these files:")
 println("\t$(join(mat_files,"\n\t"))")
 
-@everywhere function process_file(mat_file)
+@everywhere function process_file(mat_file; data_dir=data_dir, output_dir_real=output_dir_real, output_dir_sim=output_dir_sim)
     # lf = open(replace(abspath(@__FILE__), ".jl", ".$(myid()).log"), "a")
     lf = open(joinpath(homedir(),"julia","CRCNS_generate_STRFs.$(myid()).log"), "a")
     println(lf, "* Processing file $mat_file")
