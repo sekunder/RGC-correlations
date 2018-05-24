@@ -185,6 +185,7 @@ println("\t$(join(mat_files,"\n\t"))")
             write(file, "spikes", sim_spikes)
         end
     end
+    close(lf)
 end
 
 pmap(process_file, mat_files)
