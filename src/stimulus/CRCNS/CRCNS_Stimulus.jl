@@ -9,7 +9,7 @@ indicated recording from the given file. Includes this information in the
 metadata.
 
 """
-@everywhere function CRCNS_Stimulus(mat_file::String, recording_index::Int; verbose=0, single_rec=false, kwargs...)
+function CRCNS_Stimulus(mat_file::String, recording_index::Int; verbose=0, single_rec=false, kwargs...)
     fname = basename(mat_file)
     floc = dirname(abspath(mat_file))
     if verbose > 0
