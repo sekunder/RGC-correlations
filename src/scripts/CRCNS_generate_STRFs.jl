@@ -131,7 +131,7 @@ println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
         println(lf, "$(ts())     [r = response computed | s = response scaled to match STRFs | p = poisson process spike train generated]")
         # print(lf, "$(ts())       ")
         for (idx, RF) in enumerate(STRFs)
-            print(lf, "$(ts()) $idx[")
+            print(lf, "$(ts())     $idx[")
             (r,tau) = STRF_response(RF, stim, flip_STRF_time=true)
             n = spike_hist[:,idx]
             print(lf, "r|")
