@@ -19,6 +19,7 @@ for (pkg_name, pkg_url) in unregistered_packages
     if !(pkg_name in keys(Pkg.installed()))
         Pkg.clone(pkg_url)
     end
+    Pkg.update(pkg_name)
 end
 @everywhere using BinaryVectorProbability, Spikes, GrayScaleStimuli
 
