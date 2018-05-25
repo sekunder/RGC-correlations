@@ -1,4 +1,11 @@
 """
+    ts()
+
+Returns the current time as a formatted string for logging purposes.
+"""
+ts() = Dates.format(now(), "YYYY mm dd HH:MM:SS")
+
+"""
     decimal_round(x, k)
 
     rounds `x` away from 0 to the `k`th place
