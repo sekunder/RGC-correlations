@@ -35,11 +35,11 @@ include("../util/init.jl")
 # include("../util/constants.jl")
 # using Spikes, Stimulus, Probability
 
-cline_args = process_args(ARGS; parse_flags=["verbose", "poisson_time","poisson_loops","poisson_spikes"], bool_flags=["help","defaults"])
-verbose = get(cline_args,"verbose",[0])[1]
-poisson_time = Float64(get(cline_args,"poisson_time",[600.0])[1])
-poisson_loops = get(cline_args,"poisson_loops",[0])[1]
-poisson_spikes = get(cline_args,"poisson_spikes",[0])[1]
+@everywhere cline_args = process_args(ARGS; parse_flags=["verbose", "poisson_time","poisson_loops","poisson_spikes"], bool_flags=["help","defaults"])
+@everywhere verbose = get(cline_args,"verbose",[0])[1]
+@everywhere poisson_time = Float64(get(cline_args,"poisson_time",[600.0])[1])
+@everywhere poisson_loops = get(cline_args,"poisson_loops",[0])[1]
+@everywhere poisson_spikes = get(cline_args,"poisson_spikes",[0])[1]
 
 if cline_args["help"]
     println(help_string)
@@ -72,7 +72,7 @@ for dir in [data_dir, output_dir_real, output_dir_sim]
     end
 end
 
-mat_files = filter(x -> endswith(x, ".mat"), file_list)
+@everywhere mat_files = filter(x -> endswith(x, ".mat"), file_list)
 @everywhere real_jld_files = filter(x -> endswith(x, ".jld"), readdir(output_dir_real))
 @everywhere sim_jld_files = filter(x -> endswith(x, ".jld"), readdir(output_dir_sim))
 
