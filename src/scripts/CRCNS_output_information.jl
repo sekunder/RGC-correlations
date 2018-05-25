@@ -183,7 +183,7 @@ for sim_file in sim_jld_files
                     for XXX in ["1","2","N"]
                         for YYY in ["real","sim"]
                             distro_name = "P_$(XXX)_$(YYY)_$III"
-                            if !haskey(distros, distro_name) || metadata(distros[distro_name], :CRCNS_script_version, v"0.1") < CRCNS_script_version
+                            if !haskey(distros, distro_name) || get(distros[distro_name].metadata, :CRCNS_script_version, v"0.1") < CRCNS_script_version
                                 # sometimes, even though a conditional statement
                                 # *must* define a variable, julia complains at me
                                 # because it thinks that variable is not defined.
