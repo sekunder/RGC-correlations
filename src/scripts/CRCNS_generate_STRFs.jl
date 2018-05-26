@@ -137,7 +137,7 @@ println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
             print(lf, "r|")
 
             c_range = (1.0:0.1:maximum(n)) / tau
-            h_range = [10.0^k for k in 2.0:0.1:4.0] * RF.metadata[:mm_per_px]
+            h_range = [10.0^k for k in 2.0:0.1:4.0]
             x0_range = decimal_round(minimum(r),2):0.001:decimal_round(maximum(r),2)
             theta_ranges = [c_range, h_range, x0_range]
             L[:,idx], theta_opt, Q_opt = scale_response(r, n, sigmoid, (u,v) -> (norm(u * tau - v) / length(u)); d=3, ranges=theta_ranges, save_fun=Float64[])
