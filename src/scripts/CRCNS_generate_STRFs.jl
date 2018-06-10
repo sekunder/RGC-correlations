@@ -88,6 +88,7 @@ println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
     global data_dir, output_dir_sim, output_dir_real
     # lf = open(replace(abspath(@__FILE__), ".jl", ".$(myid()).log"), "a")
     lf = open(joinpath(homedir(),"julia","CRCNS_generate_STRFs.$(myid()).log"), "a")
+    println(lf)
     println(lf, "$(ts()) * Processing file $mat_file")
     # poor planning on my part means I still have to open the damn files here to
     # get the number of recording indexes. Oh well.
@@ -153,7 +154,7 @@ println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
             ST_simulated[idx] = inhomogeneous_poisson_process(L[:,idx], tau;
                 sampling_rate_factor=10, max_real_time=poisson_time, max_loops=poisson_loops, max_spikes=poisson_spikes,
                 exit_status=ST_status[idx], total_time=time_arr)
-            print("p")
+            print(lf, "p")
             if verbose > 1
                 print(lf, "[Got $(length(ST_simulated[idx])) spikes in $(time_arr[1]) s]")
             end
