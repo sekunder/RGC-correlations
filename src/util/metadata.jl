@@ -20,24 +20,6 @@ function show_metadata(io::IO, A::Any)
 end
 
 """
-    metadata(A::Any, k::Any)
-
-Convenience function, returns `A`'s metadata value for key `k`, or `:none` if it
-is not set. Honestly completely unnecessary except to make scripts a little more
-readable.
-
-"""
-metadata(A::Any, k::Any, default=:none) = get(A.metadata, k, default)
-
-"""
-    metadata!(A::Any, k::Any, v::Any=:none)
-
-Convenience function, sets metadata for `A`. Can be called without third
-argument to ensure key `k` exists in `A`'s metadata.
-"""
-metadata!(A::Any, k::Any, v::Any=:none) = get!(A.metadata, k, v)
-
-"""
     hide_metadata!(A, k)
 
 "Hides" metadata with key `k`. This means that `show_metadata` will only show

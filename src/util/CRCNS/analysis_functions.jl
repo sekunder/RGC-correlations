@@ -46,8 +46,15 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
     file_exists = ispath(joinpath(output_dir, filename))
     STRF_exists = false
     if file_exists
-        d = load(joinpath(output_dir, filename))
-        STRF_exists = d["CRCNS_script_version"] == CRCNS_script_version
+        STRF_exists = try
+                d = load(joinpath(output_dir, filename))
+                d["CRCNS_script_version"] == CRCNS_script_version
+            catch y
+                if verbose > 0
+                    println("CRCNS_output_STRFs: error encountered while reading ")
+                end
+                false
+            end
     end
     if !file_exists || !STRF_exists
         STRFs = compute_STRFs(spike_hist, stim)
