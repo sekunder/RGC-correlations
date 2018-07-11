@@ -85,7 +85,7 @@ println("$(ts()) Preparing to process these files:")
 println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
 
 @everywhere function process_file(mat_file)
-    global data_dir, output_dir_sim, output_dir_real
+    global data_dir, output_dir_sim, output_dir_real, verbose
     # lf = open(replace(abspath(@__FILE__), ".jl", ".$(myid()).log"), "a")
     lf = open(joinpath(homedir(),"julia","CRCNS_generate_STRFs.$(myid()).log"), "a")
     println(lf)
@@ -144,10 +144,8 @@ println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
             L[:,idx], theta_opt, Q_opt = scale_response(r, n, sigmoid, (u,v) -> (norm(u * tau - v) / length(u)); d=3, ranges=theta_ranges, save_fun=Float64[])
             print(lf, "s|")
 
-            if verbose > 1
-                expected_spikes = sum_kbn((L[:,idx] * tau)[:])
-                print(lf, "[Expected #spikes = $expected_spikes]")
-            end
+            expected_spikes = sum_kbn((L[:,idx] * tau)[:])
+            print(lf, "[Expected #spikes = $expected_spikes]")
 
             ST_status[idx] = Vector{Symbol}()
             time_arr = zeros(1)
@@ -155,9 +153,7 @@ println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
                 sampling_rate_factor=10, max_real_time=poisson_time, max_loops=poisson_loops, max_spikes=poisson_spikes,
                 exit_status=ST_status[idx], total_time=time_arr)
             print(lf, "p")
-            if verbose > 1
-                print(lf, "[Got $(length(ST_simulated[idx])) spikes in $(time_arr[1]) s]")
-            end
+            print(lf, "[Got $(length(ST_simulated[idx])) spikes in $(time_arr[1]) s]")
             println(lf, "]")
         end
 
@@ -171,9 +167,9 @@ println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
         sim_hist = histogram(sim_spikes, frame_time(stim); N_bins=n_frames(stim))
         sim_STRFs = compute_STRFs(sim_hist, stim)
         println(lf, "done")
-        if verbose > 1
-            println(lf, sim_spikes)
-        end
+        # if verbose > 1
+        #     println(lf, sim_spikes)
+        # end
 
         indexes = index_set_to_int(sim_spikes.I)
         sim_filename = "$(remove_extension(mat_file))-$(rec_idx)_simulated_$indexes.jld"
