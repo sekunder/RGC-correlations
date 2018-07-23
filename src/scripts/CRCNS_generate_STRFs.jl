@@ -123,8 +123,9 @@ println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
         print(lf, "$(ts())     Computing real STRFs...")
 
         stim, spikes, spike_hist, STRFs = CRCNS_output_STRFs(joinpath(data_dir, mat_file), rec_idx, output_dir_real;
-            CRCNS_script_version=CRCNS_script_version, verbose=verbose, single_rec=(length(recordings) == 1))
-        println(lf, "done")
+            CRCNS_script_version=CRCNS_script_version, verbose=verbose, single_rec=(length(recordings) == 1),
+            fp=lf, indent=3)
+        # println(lf, "done")
         L = zeros(spike_hist)
         ST_simulated = Vector{Vector{Float64}}(n_cells(spikes))
         ST_status = Vector{Vector{Symbol}}(n_cells(spikes))
@@ -166,7 +167,7 @@ println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
         hide_metadata!(sim_spikes, :poisson_rate)
         sim_hist = histogram(sim_spikes, frame_time(stim); N_bins=n_frames(stim))
         sim_STRFs = compute_STRFs(sim_hist, stim)
-        println(lf, "done")
+        # println(lf, "done")
         # if verbose > 1
         #     println(lf, sim_spikes)
         # end

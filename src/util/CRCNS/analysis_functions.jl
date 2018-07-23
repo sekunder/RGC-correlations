@@ -21,7 +21,7 @@ being saved), `2` means verbose output from functions called within this one.
 
 """
 function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_file));
-    verbose=0, CRCNS_script_version=v"0.1", kwargs...)
+    verbose=0, CRCNS_script_version=v"0.1", fp=STDOUT, indent=0, kwargs...)
     # fname = basename(mat_file)
     # floc = dirname(abspath(mat_file))
     dkwargs = Dict(kwargs)
@@ -29,7 +29,7 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
     base_name = remove_extension(basename(mat_file))
     if !isdir(output_dir)
         if verbose > 0
-            println("CRCNS_output_STRFs: making directory $(abspath(output_dir))")
+            println(fp, "$(ts() * sp(indent)) CRCNS_output_STRFs: making directory $(abspath(output_dir))")
         end
         mkpath(output_dir)
     end
@@ -51,7 +51,7 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
                 d["CRCNS_script_version"] == CRCNS_script_version
             catch y
                 if verbose > 0
-                    println("CRCNS_output_STRFs: error encountered while reading ")
+                    println(fp, "$(ts() * sp(indent)) CRCNS_output_STRFs: error encountered while reading ")
                 end
                 false
             end
@@ -61,13 +61,13 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
         timestamp = now()
     else
         if verbose > 0
-            println("CRCNS_output_STRFs: reading jld file $(joinpath(output_dir, filename))")
+            println(fp, "$(ts() * sp(indent)) CRCNS_output_STRFs: reading jld file $(joinpath(output_dir, filename))")
         end
         STRFs = d["STRFs"]
     end
     if !file_exists
         if verbose > 0
-            println("CRCNS_output_STRFs: writing jld file $(joinpath(output_dir, filename))")
+            println(fp, "$(ts() * sp(indent)) CRCNS_output_STRFs: writing jld file $(joinpath(output_dir, filename))")
         end
         save(joinpath(output_dir, filename), "CRCNS_script_version", CRCNS_script_version, "STRFs", STRFs, "timestamp", timestamp)
     end
@@ -92,11 +92,11 @@ the same order (so `I_2_real[k][j]` is computed from the same index set as
 
 """
 function CRCNS_collect_entropy(dir=CRCNS_information_dir;
-    verbose=0, CRCNS_script_version=CRCNS_script_version, kwargs...)
+    verbose=0, CRCNS_script_version=CRCNS_script_version, fp=STDOUT, indent=0, kwargs...)
 
     jld_files = filter(x -> endswith(x, ".jld"), readdir(dir))
     if verbose > 0
-        println("CRCNS_collect_entropy: found $(length(jld_files)) files in $dir")
+        println(fp, "$(ts() * sp(indent)) CRCNS_collect_entropy: found $(length(jld_files)) files in $dir")
     end
     # H_all = Dict{Int,Matrix{Float64}}()
     I_2_real = Dict{Int,Vector{Float64}}()
@@ -104,7 +104,7 @@ function CRCNS_collect_entropy(dir=CRCNS_information_dir;
 
     for filename in jld_files
         if verbose > 0
-            println("CRCNS_collect_entropy: Inspecting file $filename")
+            println(fp, "$(ts() * sp(indent)) CRCNS_collect_entropy: Inspecting file $filename")
         end
         H_temp = Dict()
         try
@@ -121,7 +121,7 @@ function CRCNS_collect_entropy(dir=CRCNS_information_dir;
             end
         catch y
             if verbose > 0
-                println("\tException occurred. Skipping file.")
+                println(fp, "$(ts() * sp(indent+1)) Exception occurred. Skipping file.")
                 show(y)
                 continue
             end
@@ -138,9 +138,9 @@ function CRCNS_collect_entropy(dir=CRCNS_information_dir;
                 push!(get!(I_2_sim, k, Float64[]), i2s)
             else
                 if verbose > 0
-                    println("\tFound bad index $III (size $k):")
-                    println("\t\tI_2_real = $i2r")
-                    println("\t\tI_2_sim  = $i2s")
+                    println(fp, "$(ts() * sp(indent+1)) Found bad index $III (size $k):")
+                    println(fp, "$(ts() * sp(indent+2)) I_2_real = $i2r")
+                    println(fp, "$(ts() * sp(indent+2)) I_2_sim  = $i2s")
                 end
             end
         end
