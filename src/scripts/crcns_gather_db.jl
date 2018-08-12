@@ -14,7 +14,7 @@ include("../util/init.jl")
 using JLD, MAT, DataFrames
 
 # load database(s) from ../../data, or create them if they don't exist
-data_dir = joinpath(@__DIR__, "../../data")
+data_dir = normpath(joinpath(@__DIR__, "../../data"))
 if !ispath(data_dir)
     println("Creating directory $data_dir")
     mkpath(data_dir)
@@ -80,14 +80,21 @@ function populatestrfdataframe_and_save(input_dir, db_dir, db_filename; neuron_t
         end
     end
     categorical!(df, [:ori_mat_file, :ori_jld_file, :neuron_type])
+    println("$(ts()) $(size(df)) DataFrame created")
     show(head(df))
-    println("$(ts()) Saving to $db_dir")
-    save(joinpath(output_dir, db_filename), "db", df)
+    println()
+    describe(df)
+    println()
+    println("$(ts()) Saving to $(joinpath(db_dir, db_filename)) [\"db\"]")
+    save(joinpath(db_dir, db_filename), "db", df)
 end
 
 
 # First, let's get all the real STRFs
+println("Going for real STRFs")
 populatestrfdataframe_and_save(joinpath(CRCNS_STRF_dir,"real"), data_dir, CRCNS_db_strf_real; neuron_type="mouse RGC")
+
+println("And now simulated:")
 populatestrfdataframe_and_save(joinpath(CRCNS_STRF_dir,"sim"), data_dir, CRCNS_db_strf_sim; neuron_type="simulated RGC")
 # and the simulated:
 # populatestrfdataframe_and_save(joinpath(CRCNS_STRF_dir,"sim"), data_dir, CRNCS_db_strf_sim, "simulated RGC")
