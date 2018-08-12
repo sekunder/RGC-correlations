@@ -14,10 +14,10 @@ include("../util/init.jl")
 using JLD, MAT, DataFrames
 
 # load database(s) from ../../data, or create them if they don't exist
-db_dir = joinpath(@__DIR__, "../../data")
-if !ispath(db_dir)
-    println("Creating directory db_dir")
-    mkpath(db_dir)
+data_dir = joinpath(@__DIR__, "../../data")
+if !ispath(data_dir)
+    println("Creating directory $data_dir")
+    mkpath(data_dir)
 end
 
 function new_strf_dataframe()
@@ -48,42 +48,45 @@ function new_prob_dataframe()
 end
 
 # db filenames are in CRNCS_db_X_Y where X is one of prob, strf and Y is one of real, sim
-function populatestrfdataframe_and_save(input_dir, output_dir, output_filename, neuron_type)
+function populatestrfdataframe_and_save(input_dir, db_dir, db_filename; neuron_type="mouse RGC")
     df = new_strf_dataframe()
-    jld_files = filter(x -> endswith(x,".jld"), readdir(input_dir))
-    println("$(ts()) Processing STRFs in $input_dir")
+    jld_files = filter(x -> startswith(x,"2008") && endswith(x,".jld"), readdir(input_dir))
+    println("$(ts()) Processing files in $input_dir")
     println("$(ts()) Found these files:")
     println("$(ts()) \t$(join(jld_files,"\n$(ts()) \t"))")
     for jf in jld_files
-        println("$(ts())   File $jf: ")
+        println("$(ts()) * File $jf: ")
         try
             STRFs = load(joinpath(CRCNS_STRF_dir,"real",jf), "STRFs")
             for (i,S) in enumerate(STRFs)
                 try
                     h = hash(S)
-                    f = savestimulus(S; dir=joinpath(CRCNS_STRF_dir,"real"))
+                    f = savestimulus(S)
                     mf = jf[1:11] * ".mat"
                     mr = parse(jf[13:13]) #funny quirk: jf[13] is a char, hence does not parse. jf[13:13] is a string, hence can be parsed.
-                    push!(df, [mf mr i jf neuron_type h frame_rate(S) resolution(S) frame_size(S) missing missing missing])
+                    push!(df, [mf, mr, i, jf, neuron_type, h, frame_rate(S), resolution(S), frame_size(S), missing, missing, missing])
                     println("$(ts())     $i: $f")
                 catch en
                     println("$(ts()) !   $i: Error: $en")
+                    continue
                 end
             end
         catch es
             println("$(ts()) !!! Error encountered with $jf")
             show(es)
+            println()
             continue
         end
     end
     categorical!(df, [:ori_mat_file, :ori_jld_file, :neuron_type])
     show(head(df))
     println("$(ts()) Saving to $db_dir")
-    save(joinpath(db_dir, CRCNS_db_strf_real), "db", df)
+    save(joinpath(output_dir, db_filename), "db", df)
 end
 
 
 # First, let's get all the real STRFs
-populatestrfdataframe_and_save(joinpath(CRCNS_STRF_dir,"real"), db_dir, CRCNS_db_strf_real, "mouse RGC")
+populatestrfdataframe_and_save(joinpath(CRCNS_STRF_dir,"real"), data_dir, CRCNS_db_strf_real; neuron_type="mouse RGC")
+populatestrfdataframe_and_save(joinpath(CRCNS_STRF_dir,"sim"), data_dir, CRCNS_db_strf_sim; neuron_type="simulated RGC")
 # and the simulated:
-populatestrfdataframe_and_save(joinpath(CRCNS_STRF_dir,"sim"), db_dir, CRNCS_db_strf_sim, "simulated RGC")
+# populatestrfdataframe_and_save(joinpath(CRCNS_STRF_dir,"sim"), data_dir, CRNCS_db_strf_sim, "simulated RGC")
