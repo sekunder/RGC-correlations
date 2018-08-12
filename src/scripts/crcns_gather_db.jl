@@ -53,7 +53,7 @@ function populatestrfdataframe_and_save(input_dir, output_dir, output_filename, 
     jld_files = filter(x -> endswith(x,".jld"), readdir(input_dir))
     println("$(ts()) Processing STRFs in $input_dir")
     println("$(ts()) Found these files:")
-    println("$(ts()) \t$(join(jld_files,"$(ts()) \t\n"))")
+    println("$(ts()) \t$(join(jld_files,"\n$(ts()) \t"))")
     for jf in jld_files
         println("$(ts())   File $jf: ")
         STRFs = load(joinpath(CRCNS_STRF_dir,"real",jf), "STRFs")
