@@ -56,14 +56,24 @@ function populatestrfdataframe_and_save(input_dir, output_dir, output_filename, 
     println("$(ts()) \t$(join(jld_files,"\n$(ts()) \t"))")
     for jf in jld_files
         println("$(ts())   File $jf: ")
-        STRFs = load(joinpath(CRCNS_STRF_dir,"real",jf), "STRFs")
-        for (i,S) in enumerate(STRFs)
-            h = hash(S)
-            f = savestimulus(S; dir=joinpath(CRCNS_STRF_dir,"real"))
-            mf = jf[1:11] * ".mat"
-            mr = parse(jf[13:13]) #funny quirk: jf[13] is a char, hence does not parse. jf[13:13] is a string, hence can be parsed.
-            push!(df, [mf mr i jf neuron_type h frame_rate(S) resolution(S) frame_size(S) missing missing missing])
-            println("$(ts())     $i: $f")
+        try
+            STRFs = load(joinpath(CRCNS_STRF_dir,"real",jf), "STRFs")
+            for (i,S) in enumerate(STRFs)
+                try
+                    h = hash(S)
+                    f = savestimulus(S; dir=joinpath(CRCNS_STRF_dir,"real"))
+                    mf = jf[1:11] * ".mat"
+                    mr = parse(jf[13:13]) #funny quirk: jf[13] is a char, hence does not parse. jf[13:13] is a string, hence can be parsed.
+                    push!(df, [mf mr i jf neuron_type h frame_rate(S) resolution(S) frame_size(S) missing missing missing])
+                    println("$(ts())     $i: $f")
+                catch en
+                    println("$(ts()) !   $i: Error: $en")
+                end
+            end
+        catch es
+            println("$(ts()) !!! Error encountered with $jf")
+            show(es)
+            continue
         end
     end
     categorical!(df, [:ori_mat_file, :ori_jld_file, :neuron_type])
