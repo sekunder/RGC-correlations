@@ -9,10 +9,10 @@
 @everywhere CRCNS_information_dir = joinpath(CRCNS_analysis_dir, "information")
 @everywhere CRCNS_plots_dir = joinpath(CRCNS_analysis_dir, "plots")
 
-@everywhere CRCNS_db_prob_real = "crcns_prob_real.jld"
-@everywhere CRCNS_db_prob_sim = "crcns_prob_sim.jld"
-@everywhere CRCNS_db_strf_real = "crcns_strf_real.jld"
-@everywhere CRCNS_db_strf_sim = "crcns_strf_sim.jld"
+@everywhere CRCNS_db_prob_real = "crcns_prob_real"
+@everywhere CRCNS_db_prob_sim = "crcns_prob_sim"
+@everywhere CRCNS_db_strf_real = "crcns_strf_real"
+@everywhere CRCNS_db_strf_sim = "crcns_strf_sim"
 
 @everywhere CRCNS_script_version = v"0.4"
 

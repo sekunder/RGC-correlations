@@ -11,7 +11,7 @@ println(help_string)
 # lf = open(lf_name, "a")
 println("Initializing...")
 include("../util/init.jl")
-using JLD, MAT, DataFrames
+using JLD, MAT, DataFrames, CSV
 
 # load database(s) from ../../data, or create them if they don't exist
 data_dir = normpath(joinpath(@__DIR__, "../../data"))
@@ -83,8 +83,9 @@ function populatestrfdataframe_and_save(input_dir, db_dir, db_filename; neuron_t
     println("$(ts()) $(size(df)) DataFrame created")
     show(head(df))
     println()
-    println("$(ts()) Saving to $(joinpath(db_dir, db_filename))")
-    save(joinpath(db_dir, db_filename), "db", df)
+    println("$(ts()) Saving to $(joinpath(db_dir, db_filename*".csv"))")
+    CSV.write(joinpath(db_dir,db_filename*".csv"), df)
+    # save(joinpath(db_dir, db_filename), "db", df)
 end
 
 
