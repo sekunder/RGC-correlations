@@ -68,6 +68,7 @@ function populatestrfdataframe_and_save(input_dir, db_dir, db_filename; neuron_t
                     println("$(ts())     $i: $f")
                 catch en
                     println("$(ts()) !   $i: Error: $en")
+                    println("$(ts())       If STRF successfully saved, it is here: $f")
                     continue
                 end
             end
