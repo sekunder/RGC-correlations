@@ -57,7 +57,7 @@ function populatestrfdataframe_and_save(input_dir, db_dir, db_filename; neuron_t
     for jf in jld_files
         println("$(ts()) * File $jf: ")
         try
-            STRFs = load(joinpath(CRCNS_STRF_dir,"real",jf), "STRFs")
+            STRFs = load(joinpath(input_dir,jf), "STRFs")
             for (i,S) in enumerate(STRFs)
                 try
                     h = hash(S)
