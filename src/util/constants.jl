@@ -5,8 +5,14 @@
 @everywhere CRCNS_data_dir = joinpath(CRCNS_dir, "Data")
 @everywhere CRCNS_analysis_dir = joinpath(CRCNS_dir, "analysis")
 @everywhere CRCNS_STRF_dir = joinpath(CRCNS_analysis_dir, "STRF")
+@everywhere CRCNS_RF_dir = joinpath(CRCNS_analysis_dir,"RF")
 @everywhere CRCNS_information_dir = joinpath(CRCNS_analysis_dir, "information")
 @everywhere CRCNS_plots_dir = joinpath(CRCNS_analysis_dir, "plots")
+
+@everywhere CRCNS_db_prob_real = "crcns_prob_real.jld"
+@everywhere CRCNS_db_prob_sim = "crcns_prob_sim.jld"
+@everywhere CRCNS_db_strf_real = "crcns_strf_real.jld"
+@everywhere CRCNS_db_strf_sim = "crcns_strf_sim.jld"
 
 @everywhere CRCNS_script_version = v"0.4"
 
