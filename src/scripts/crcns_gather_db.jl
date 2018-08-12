@@ -83,9 +83,7 @@ function populatestrfdataframe_and_save(input_dir, db_dir, db_filename; neuron_t
     println("$(ts()) $(size(df)) DataFrame created")
     show(head(df))
     println()
-    describe(df)
-    println()
-    println("$(ts()) Saving to $(joinpath(db_dir, db_filename)) [\"db\"]")
+    println("$(ts()) Saving to $(joinpath(db_dir, db_filename))")
     save(joinpath(db_dir, db_filename), "db", df)
 end
 
@@ -93,6 +91,8 @@ end
 # First, let's get all the real STRFs
 println("Going for real STRFs")
 populatestrfdataframe_and_save(joinpath(CRCNS_STRF_dir,"real"), data_dir, CRCNS_db_strf_real; neuron_type="mouse RGC")
+println()
+println("Done with real STRFs!")
 
 println("And now simulated:")
 populatestrfdataframe_and_save(joinpath(CRCNS_STRF_dir,"sim"), data_dir, CRCNS_db_strf_sim; neuron_type="simulated RGC")
