@@ -66,7 +66,7 @@ function populatestrfdataframe_and_save(input_dir, db_dir, db_filename; neuron_t
                     mr = parse(jf[13:13]) #funny quirk: jf[13] is a char, hence does not parse. jf[13:13] is a string, hence can be parsed.
                     r_x,r_y = resolution(S)
                     p_x,p_y = frame_size(S)
-                    push!(df, [mf, mr, i, jf, neuron_type, h, frame_rate(S), r_X, r_y, p_x, p_y, missing, missing, missing, missing, missing])
+                    push!(df, [mf, mr, i, jf, neuron_type, h, frame_rate(S), r_x, r_y, p_x, p_y, missing, missing, missing, missing, missing])
                     println("$(ts())     $i: $f")
                 catch en
                     println("$(ts()) !   $i: Error: $en")
