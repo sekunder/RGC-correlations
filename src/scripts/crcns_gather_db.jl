@@ -14,11 +14,11 @@ include("../util/init.jl")
 using JLD, MAT, DataFrames, CSV
 
 # load database(s) from ../../data, or create them if they don't exist
-data_dir = normpath(joinpath(@__DIR__, "../../data"))
-if !ispath(data_dir)
-    println("Creating directory $data_dir")
-    mkpath(data_dir)
-end
+# data_dir = normpath(joinpath(@__DIR__, "../../data"))
+# if !ispath(data_dir)
+#     println("Creating directory $data_dir")
+#     mkpath(data_dir)
+# end
 
 function new_strf_dataframe()
     return DataFrame(:ori_mat_file => [],
@@ -28,10 +28,10 @@ function new_strf_dataframe()
         :neuron_type => [],
         :hash => [],
         :frame_rate => [],
-        :resolution => [],
-        :pixels => [],
-        :center => [],
-        :covariance => [],
+        :resolution_x => [], :resolution_y => [],
+        :pixels_x => [], :pixels_y => [],
+        :center_x => [], :center_y => [],
+        :v1_x => [], :v1_y => [], :v2_x => [], :v2_y => [], # eigenvectors of covariance matrix
         :estimation_params => [])
 end
 
@@ -64,7 +64,9 @@ function populatestrfdataframe_and_save(input_dir, db_dir, db_filename; neuron_t
                     f = savestimulus(S)
                     mf = jf[1:11] * ".mat"
                     mr = parse(jf[13:13]) #funny quirk: jf[13] is a char, hence does not parse. jf[13:13] is a string, hence can be parsed.
-                    push!(df, [mf, mr, i, jf, neuron_type, h, frame_rate(S), resolution(S), frame_size(S), missing, missing, missing])
+                    r_x,r_y = resolution(S)
+                    p_x,p_y = frame_size(S)
+                    push!(df, [mf, mr, i, jf, neuron_type, h, frame_rate(S), r_X, r_y, p_x, p_y, missing, missing, missing, missing, missing])
                     println("$(ts())     $i: $f")
                 catch en
                     println("$(ts()) !   $i: Error: $en")
@@ -91,11 +93,11 @@ end
 
 # First, let's get all the real STRFs
 println("Going for real STRFs")
-populatestrfdataframe_and_save(joinpath(CRCNS_STRF_dir,"real"), data_dir, CRCNS_db_strf_real; neuron_type="mouse RGC")
+populatestrfdataframe_and_save(joinpath(CRCNS_STRF_dir,"real"), CRCNS_analysis_dir, CRCNS_db_strf_real; neuron_type="mouse RGC")
 println()
 println("Done with real STRFs!")
 
 println("And now simulated:")
-populatestrfdataframe_and_save(joinpath(CRCNS_STRF_dir,"sim"), data_dir, CRCNS_db_strf_sim; neuron_type="simulated RGC")
+populatestrfdataframe_and_save(joinpath(CRCNS_STRF_dir,"sim"), CRCNS_analysis_dir, CRCNS_db_strf_sim; neuron_type="simulated RGC")
 # and the simulated:
 # populatestrfdataframe_and_save(joinpath(CRCNS_STRF_dir,"sim"), data_dir, CRNCS_db_strf_sim, "simulated RGC")
