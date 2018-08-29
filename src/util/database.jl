@@ -4,7 +4,7 @@
 
 # functions for dealing with the "databases" I am making
 
-using DataFrames, CSV, Query
+using DataFrames, CSV
 
 """
     vec2str(v) = join(v, " ")
