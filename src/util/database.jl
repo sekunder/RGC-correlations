@@ -4,14 +4,14 @@
 
 # functions for dealing with the "databases" I am making
 
-using DataFrames, CSV
+@everywhere using DataFrames, CSV
 
 """
     vec2str(v) = join(v, " ")
 
 Used for reading/writing CSV files (transforms vectors in `DataFrame`s)
 """
-vec2str(v) = join(v, " ") # jklol this function ends up not being used anywhere
+@everywhere vec2str(v) = join(v, " ") # jklol this function ends up not being used anywhere
 # vec2str(::Missings.Missing) = missing
 
 """
@@ -19,10 +19,10 @@ vec2str(v) = join(v, " ") # jklol this function ends up not being used anywhere
 
 Used for reading/writing CSV files (transforms strings in CSV files)
 """
-str2vec(s) = map(parse, split(replace(s, ['[',',',']'], "")))
-str2vec(::Missings.Missing) = missing
+@everywhere str2vec(s) = map(parse, split(replace(s, ['[',',',']'], "")))
+@everywhere str2vec(::Missings.Missing) = missing
 
-function new_strf_dataframe()
+@everywhere function new_strf_dataframe()
     return DataFrame(
         :ori_mat_file   => [],
         :ori_mat_rec    => [],
@@ -44,7 +44,7 @@ function new_strf_dataframe()
 end
 
 
-function new_prob_dataframe()
+@everywhere function new_prob_dataframe()
     return DataFrame(
         :ori_mat_file   => [],
         :ori_mat_rec    => [],
@@ -63,7 +63,7 @@ function new_prob_dataframe()
     )
 end
 
-function new_spikes_dataframe()
+@everywhere function new_spikes_dataframe()
     return DataFrame(
         :ori_mat_file   => [],
         :ori_mat_rec    => [],
@@ -76,7 +76,7 @@ function new_spikes_dataframe()
 end
 
 #seems to be working
-function load_strf_db(filename; dir=CRCNS_analysis_dir)
+@everywhere function load_strf_db(filename; dir=CRCNS_analysis_dir)
     _fn = endswith(filename, ".csv") ? filename : filename * ".csv"
     df = CSV.read(joinpath(dir, _fn),
         types=Dict(
@@ -124,7 +124,7 @@ function load_strf_db(filename; dir=CRCNS_analysis_dir)
 end
 
 # seems to be working
-function load_prob_db(filename; dir=CRCNS_analysis_dir)
+@everywhere function load_prob_db(filename; dir=CRCNS_analysis_dir)
     _fn = endswith(filename, ".csv") ? filename : filename * ".csv"
     df = CSV.read(joinpath(dir, _fn),
         types=Dict(
@@ -145,7 +145,7 @@ function load_prob_db(filename; dir=CRCNS_analysis_dir)
     return df
 end
 
-function load_spikes_db(filename; dir=CRCNS_analysis_dir)
+@everywhere function load_spikes_db(filename; dir=CRCNS_analysis_dir)
     _fn = endswith(filename, ".csv") ? filename : filename * ".csv"
     df = CSV.read(joinpath(dir, _fn),
             types=Dict(
@@ -163,17 +163,17 @@ end
 
 # because of bugs with the transforms kwarg, all three of these save functions are actually
 # identical. they weren't supposed to be! oh well.
-function save_strf_db(df, filename; dir=CRCNS_analysis_dir)
+@everywhere function save_strf_db(df, filename; dir=CRCNS_analysis_dir)
     _fn = endswith(filename, ".csv") ? filename : filename * ".csv"
     CSV.write(joinpath(dir, _fn), df)
 end
 
-function save_prob_db(df, filename; dir=CRCNS_analysis_dir)
+@everywhere function save_prob_db(df, filename; dir=CRCNS_analysis_dir)
     _fn = endswith(filename, ".csv") ? filename : filename * ".csv"
     CSV.write(joinpath(dir, _fn), df)
 end
 
-function save_spikes_db(df, filename; dir=CRCNS_analysis_dir)
+@everywhere function save_spikes_db(df, filename; dir=CRCNS_analysis_dir)
     _fn = endswith(filename, ".csv") ? filename : filename * ".csv"
     CSV.write(joinpath(dir, _fn), df)
 end
