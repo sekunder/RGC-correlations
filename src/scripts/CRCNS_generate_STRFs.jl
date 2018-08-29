@@ -6,16 +6,27 @@ stimulus to those STRFs.
 
 Usage:
   [julia] $(basename(@__FILE__)) --defaults | --dir data_dir | file1 file2 ... [options]
+
   Processes files specified by first argument/flags:
+
     --defaults : read all .mat files in CRCNS_Data_dir, also sets output directories
+
     --dir data_dir : real all .mat files in dir
+
     file1 file2 ... : read files in list from CRCNS_Data_dir
+
   Options:
+
     --verbose 0|1|2 : controls verbosity of output
+
     --output_dir_real path, --output_dir_sim path : where to write .jld files
+
     --skip file1 file2 ... : which files to skip (including overriding defaults)
-    --poisson_time t, --poisson_loops n, --poisson_spikes m : Stop poisson process generation if it lasts longer than t seconds, n loops, or m spikes.
+
+    --poisson_time t, --poisson_loops n, --poisson_spikes m : Stop poisson process
+        generation if it lasts longer than t seconds, n loops, or m spikes.
         By default, uses 600.0 s (no value for loops, spikes)
+
     --help : display this message and exit
 """
 # CRCNS_script_version=v"0.3"
@@ -120,7 +131,7 @@ println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
         #         continue
         #     end
         # end
-        print(lf, "$(ts())     Computing real STRFs...")
+        println(lf, "$(ts())     Computing real STRFs...")
 
         stim, spikes, spike_hist, STRFs = CRCNS_output_STRFs(joinpath(data_dir, mat_file), rec_idx, output_dir_real;
             CRCNS_script_version=CRCNS_script_version, verbose=verbose, single_rec=(length(recordings) == 1),
