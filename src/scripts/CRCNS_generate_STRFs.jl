@@ -221,7 +221,7 @@ println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
             rec_idx,
             missing,
             "simulated",
-            int_to_index_set(1:n_cells(spikes)),
+            index_set_to_int(1:n_cells(spikes)),
             hash(sim_spikes),
             hash(stim)])
 
