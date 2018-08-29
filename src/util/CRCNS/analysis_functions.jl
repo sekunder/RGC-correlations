@@ -47,7 +47,7 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
     spikes.metadata[:frame_hist] = spike_hist
     hide_metadata!(spikes, :frame_hist)
     for rf in STRFs
-        rf[:animal] = spikes.metadata[:animal]
+        rf.metadata[:animal] = spikes.metadata[:animal]
     end
 
     # Trying a new approach to file io
