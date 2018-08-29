@@ -28,3 +28,4 @@ end
 @everywhere include("../util/misc.jl")
 @everywhere include("../util/metadata.jl")
 @everywhere include("../util/process_args.jl")
+@everywhere include("../util/database.jl")

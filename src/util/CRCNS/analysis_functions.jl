@@ -35,42 +35,58 @@ function CRCNS_output_STRFs(mat_file, rec_idx, output_dir=dirname(abspath(mat_fi
     end
 
     single_rec = pop!(dkwargs,:single_rec,false)
-    stim = CRCNS_Stimulus(mat_file, rec_idx; verbose=verbose, single_rec=single_rec)
+    # load spikes and stimulus from files
+    stim = CRCNS_Stimulus(mat_file, rec_idx; verbose=verbose, single_rec=single_rec) # don't save stim, it's like ~30MB
     spikes = CRCNS_get_spikes_from_file(mat_file, rec_idx)
-    idx = index_set_to_int(spikes.I)
-    filename = "$base_name-$(rec_idx)_STRF_$idx.jld"
-    #MAYBEDO figure out how to use expressions to make this customizable.
 
+    # compute histogram and STRFs
     spike_hist = histogram(spikes, frame_time(stim); N_bins=n_frames(stim))
-    # now let's check if these things have already been computed, to save time
-    file_exists = ispath(joinpath(output_dir, filename))
-    STRF_exists = false
-    if file_exists
-        STRF_exists = try
-                d = load(joinpath(output_dir, filename))
-                d["CRCNS_script_version"] == CRCNS_script_version
-            catch y
-                if verbose > 0
-                    println(fp, "$(ts() * sp(indent)) CRCNS_output_STRFs: error encountered while reading ")
-                end
-                false
-            end
+    STRFs = compute_STRFs(spike_hist, stim)
+
+    # add all the useful metadata
+    spikes.metadata[:frame_hist] = spike_hist
+    hide_metadata!(spikes, :frame_hist)
+    for rf in STRFs
+        rf[:animal] = spikes.metadata[:animal]
     end
-    if !file_exists || !STRF_exists
-        STRFs = compute_STRFs(spike_hist, stim)
-        timestamp = now()
-    else
-        if verbose > 0
-            println(fp, "$(ts() * sp(indent)) CRCNS_output_STRFs: reading jld file $(joinpath(output_dir, filename))")
-        end
-        STRFs = d["STRFs"]
-    end
-    if !file_exists
-        if verbose > 0
-            println(fp, "$(ts() * sp(indent)) CRCNS_output_STRFs: writing jld file $(joinpath(output_dir, filename))")
-        end
-        save(joinpath(output_dir, filename), "CRCNS_script_version", CRCNS_script_version, "STRFs", STRFs, "timestamp", timestamp)
-    end
+
+    # Trying a new approach to file io
+    savespikes(spikes)
+    map(savestimulus, STRFs)
+    # idx = index_set_to_int(spikes.I)
+    # filename = "$base_name-$(rec_idx)_STRF_$idx.jld"
+    # #MAYBEDO figure out how to use expressions to make this customizable.
+    #
+    # spike_hist = histogram(spikes, frame_time(stim); N_bins=n_frames(stim))
+    # # now let's check if these things have already been computed, to save time
+    # file_exists = ispath(joinpath(output_dir, filename))
+    # STRF_exists = false
+    # if file_exists
+    #     STRF_exists = try
+    #             d = load(joinpath(output_dir, filename))
+    #             d["CRCNS_script_version"] == CRCNS_script_version
+    #         catch y
+    #             if verbose > 0
+    #                 println(fp, "$(ts() * sp(indent)) CRCNS_output_STRFs: error encountered while reading ")
+    #             end
+    #             false
+    #         end
+    # end
+    # if !file_exists || !STRF_exists
+    #     STRFs = compute_STRFs(spike_hist, stim)
+    #     timestamp = now()
+    # else
+    #     if verbose > 0
+    #         println(fp, "$(ts() * sp(indent)) CRCNS_output_STRFs: reading jld file $(joinpath(output_dir, filename))")
+    #     end
+    #     STRFs = d["STRFs"]
+    # end
+    # if !file_exists
+    #     if verbose > 0
+    #         println(fp, "$(ts() * sp(indent)) CRCNS_output_STRFs: writing jld file $(joinpath(output_dir, filename))")
+    #     end
+    #     save(joinpath(output_dir, filename), "CRCNS_script_version", CRCNS_script_version, "STRFs", STRFs, "timestamp", timestamp)
+    # end
     return stim, spikes, spike_hist, STRFs
 end
 
@@ -151,3 +167,11 @@ end
 # H_N_real, H_1_sim, H_2_sim, H_N_sim)` where each is a
 # `Dict{Int,Vector{Float64}}`, `H_*[k]` is the list of entropy values for
 # distributions on `k` neurons.
+
+# """
+#     estimate_RF(strf::GrayScaleStimulus)
+#
+# Given an STRF, computes the variance in the time dimension; filters out
+# """
+# function estimate_RF(strf::GrayScaleStimulus)
+# end

@@ -115,6 +115,11 @@ println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
     # recordings = [2]
     vars = 0 # just a hint for garbage collecion
     println(lf, "$(ts())   Found $(length(recordings)) recordings")
+
+    real_strf_df = new_strf_dataframe()
+    sim_strf_df = new_strf_dataframe()
+    real_spikes_df = new_spikes_dataframe()
+    sim_spikes_df = new_spikes_dataframe()
     for rec_idx in recordings
         println(lf, "$(ts())   Recording $rec_idx")
         # real_files = filter(x -> startswith(x, "$(remove_extension(mat_file))-$rec_idx"), real_jld_files)
@@ -136,7 +141,19 @@ println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
         stim, spikes, spike_hist, STRFs = CRCNS_output_STRFs(joinpath(data_dir, mat_file), rec_idx, output_dir_real;
             CRCNS_script_version=CRCNS_script_version, verbose=verbose, single_rec=(length(recordings) == 1),
             fp=lf, indent=3)
-        # println(lf, "done")
+        println(lf, "$(ts())     STRFs computed; spikes and STRFs hashed and saved")
+        println(lf, "$(ts())       spikes: $(hash(spikes))")
+        println(lf, "$(ts())       STRFs: $(join(map(hash,STRFs), "  "))")
+
+        push!(real_spikes_df,
+            [mat_file,
+            rec_idx,
+            missing,
+            spikes.metadata["animal"],
+            int_to_index_set(1:n_cells(spikes)),
+            hash(spikes),
+            hash(stim)])
+
         L = zeros(spike_hist)
         ST_simulated = Vector{Vector{Float64}}(n_cells(spikes))
         ST_status = Vector{Vector{Symbol}}(n_cells(spikes))
@@ -144,7 +161,22 @@ println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
         println(lf, "$(ts())     [r = response computed | s = response scaled to match STRFs | p = poisson process spike train generated]")
         # print(lf, "$(ts())       ")
         for (idx, RF) in enumerate(STRFs)
-            print(lf, "$(ts())     $idx[")
+            # push the real strfs to the dataframe
+            push!(real_strf_df,
+                [mat_file,
+                rec_idx,
+                idx,
+                missing,
+                spikes.metadata["animal"],
+                hash(RF),
+                frame_rate(RF),
+                resolution(RF),
+                frame_size(RF),
+                missing,
+                missing,
+                missing])
+
+            print(lf, "$(ts())       $idx[")
             (r,tau) = STRF_response(RF, stim, flip_STRF_time=true)
             n = spike_hist[:,idx]
             print(lf, "r|")
@@ -164,150 +196,104 @@ println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
             ST_simulated[idx] = inhomogeneous_poisson_process(L[:,idx], tau;
                 sampling_rate_factor=10, max_real_time=poisson_time, max_loops=poisson_loops, max_spikes=poisson_spikes,
                 exit_status=ST_status[idx], total_time=time_arr)
-            print(lf, "p")
-            print(lf, "[Got $(length(ST_simulated[idx])) spikes in $(time_arr[1]) s]")
-            println(lf, "]")
+            println(lf, "p[Got $(length(ST_simulated[idx])) spikes in $(time_arr[1]) s]]")
         end
 
         print(lf, "$(ts())     Computing simulated STRFs...")
-        sim_spikes = SpikeTrains(ST_simulated, spikes.I;
+        sim_spikes = SpikeTrains(ST_simulated;
             comment="Simulated spike train for CRCNS data $mat_file, recording index $rec_idx",
             CRCNS_script_version=CRCNS_script_version,
-            poisson_status=ST_status, poisson_rate=L)
+            poisson_status=ST_status, poisson_rate=L,
+            animal="Simulated")
         hide_metadata!(sim_spikes, :poisson_status)
         hide_metadata!(sim_spikes, :poisson_rate)
         sim_hist = histogram(sim_spikes, frame_time(stim); N_bins=n_frames(stim))
+        sim_spikes.metadata[:frame_hist] = sim_hist
+        hide_metadata!(sim_spikes, :frame_hist)
         sim_STRFs = compute_STRFs(sim_hist, stim)
-        # println(lf, "done")
-        # if verbose > 1
-        #     println(lf, sim_spikes)
-        # end
 
-        indexes = index_set_to_int(sim_spikes.I)
-        sim_filename = "$(remove_extension(mat_file))-$(rec_idx)_simulated_$indexes.jld"
-        println(lf, "$(ts())     Writing simulated spike trains and computed STRFs to $(joinpath(output_dir_sim,sim_filename))")
-        # save(joinpath(output_dir_sim, sim_filename), "CRCNS_script_version", CRCNS_script_version, "timestamp", now(), "STRFs", sim_STRFs, "spikes", sim_spikes)
-        jldopen(joinpath(output_dir_sim, sim_filename), "w") do file
-            addrequire(file, Spikes)
-            addrequire(file, GrayScaleStimuli)
-            write(file, "CRCNS_script_version", CRCNS_script_version)
-            write(file, "timestamp", now())
-            write(file, "STRFs", sim_STRFs)
-            write(file, "spikes", sim_spikes)
+        savespikes(sim_spikes)
+        map(savestimulus, sim_STRFs)
+
+        # push the simulated spikes to the dataframe
+        push!(sim_spikes_df,
+            [mat_file,
+            rec_idx,
+            missing,
+            "simulated",
+            int_to_index_set(1:n_cells(spikes)),
+            hash(sim_spikes),
+            hash(stim)])
+
+        for (idx, rf) in enumerate(sim_STRFs)
+            push!(sim_strf_df,
+                [mat_file,
+                rec_idx,
+                idx,
+                missing,
+                "simulated",
+                hash(rf),
+                frame_rate(rf),
+                resolution(rf),
+                frame_size(rf),
+                missing,
+                missing,
+                missing])
         end
+
+
+        println(lf, "$(ts())     Simulated STRFs computed; spikes and STRFs hashed and saved")
+        println(lf, "$(ts())       spikes: $(hash(sim_spikes))")
+        println(lf, "$(ts())       STRFs: $(join(map(hash,sim_STRFs), "  "))")
+
+        # the save* functions I added to the various packages I'm using should render this
+        # portion of code obsolute.
+
+        # indexes = index_set_to_int(sim_spikes.I)
+        # sim_filename = "$(remove_extension(mat_file))-$(rec_idx)_simulated_$indexes.jld"
+        # println(lf, "$(ts())     Writing simulated spike trains and computed STRFs to $(joinpath(output_dir_sim,sim_filename))")
+        # # save(joinpath(output_dir_sim, sim_filename), "CRCNS_script_version", CRCNS_script_version, "timestamp", now(), "STRFs", sim_STRFs, "spikes", sim_spikes)
+        # jldopen(joinpath(output_dir_sim, sim_filename), "w") do file
+        #     addrequire(file, Spikes)
+        #     addrequire(file, GrayScaleStimuli)
+        #     write(file, "CRCNS_script_version", CRCNS_script_version)
+        #     write(file, "timestamp", now())
+        #     write(file, "STRFs", sim_STRFs)
+        #     write(file, "spikes", sim_spikes)
+        # end
     end
     close(lf)
+    # return vectors that can be pushed to a dataframe
+
+    # let's just return a full datframe and then we can do a bunch of appends
+    return Dict("real_strf"=>real_strf_df, "sim_strf"=>sim_strf_df, "real_spikes"=>real_spikes_df, "sim_spikes"=>sim_spikes_df)
 end
 
-pmap(process_file, mat_files)
+println("$(ts())   Beginning processing on $(nprocs()) available processors")
+lots_of_dicts = pmap(process_file, mat_files)
 
-# for mat_file in mat_files
-#     println("* Processing file $mat_file")
-#     # poor planning on my part means I still have to open the damn files here to
-#     # get the number of recording indexes. Oh well.
-#     vars = try
-#             matread(joinpath(data_dir, mat_file))
-#         catch y
-#             println("! Error occurred, skipping file.")
-#             show(y)
-#             continue
-#         end
-#     recordings = 1:length(vars["datainfo"]["RecNo"])
-#     # recordings = [2]
-#     vars = 0 # just a hint for garbage collecion
-#     println("  Found $(length(recordings)) recordings")
-#     for rec_idx in recordings
-#         println("  Recording $rec_idx")
-#         real_files = filter(x -> startswith(x, "$(remove_extension(mat_file))-$rec_idx"), real_jld_files)
-#         sim_files = filter(x -> startswith(x, "$(remove_extension(mat_file))-$rec_idx"), sim_jld_files)
-#         for (rf, sf) in zip(real_files,sim_files)
-#             cv_r = read(joinpath(output_dir_real, rf), "CRCNS_script_version")
-#             if VersionNumber(cv_r) < CRCNS_script_version
-#                 println("  Found file $rf using script version $cv_r. Skipping processing.")
-#                 continue
-#             end
-#             cv_s = read(joinpath(output_dir_sim, sf), "CRCNS_script_version")
-#             if VersionNumber(cv_s) < CRCNS_script_version
-#                 println("  Found file $sf using script version $cv_s. Skipping processing.")
-#                 continue
-#             end
-#         end
-#         # if !isempty(real_files) && !isempty(sim_files)
-#         #     println("  Found files")
-#         #     println("    Real: $(join(real_files,","))")
-#         #     println("    Sim : $(join(sim_files,","))")
-#         #     println("  Skipping processing.")
-#         #     continue
-#         # end
-#         print("    Computing real STRFs...")
-#
-#         stim, spikes, spike_hist, STRFs = CRCNS_output_STRFs(joinpath(data_dir, mat_file), rec_idx, output_dir_real;
-#             CRCNS_script_version=CRCNS_script_version, verbose=verbose, single_rec=(length(recordings) == 1))
-#         println("done")
-#         L = zeros(spike_hist)
-#         ST_simulated = Vector{Vector{Float64}}(n_cells(spikes))
-#         ST_status = Vector{Vector{Symbol}}(n_cells(spikes))
-#         println("    Simulating $(n_cells(spikes)) cells, using phi = sigmoid, Q = norm(r * tau - n) / N_frames")
-#         println("    [r = response computed | s = response scaled to match STRFs | p = poisson process spike train generated]")
-#         print("      ")
-#         for (idx, RF) in enumerate(STRFs)
-#             print("$idx[")
-#             (r,tau) = STRF_response(RF, stim, flip_STRF_time=true)
-#             n = spike_hist[:,idx]
-#             print("r|")
-#
-#             c_range = (1.0:0.1:maximum(n)) / tau
-#             h_range = [10.0^k for k in 2.0:0.1:4.0]
-#             x0_range = decimal_round(minimum(r),2):0.001:decimal_round(maximum(r),2)
-#             theta_ranges = [c_range, h_range, x0_range]
-#             L[:,idx], theta_opt, Q_opt = scale_response(r, n, sigmoid, (u,v) -> (norm(u * tau - v) / length(u)); d=3, ranges=theta_ranges, save_fun=Float64[])
-#             print("s|")
-#
-#             if verbose > 1
-#                 expected_spikes = sum_kbn((L[:,idx] * tau)[:])
-#                 print("[Expected #spikes = $expected_spikes]")
-#             end
-#
-#             ST_status[idx] = Vector{Symbol}()
-#             time_arr = zeros(1)
-#             ST_simulated[idx] = inhomogeneous_poisson_process(L[:,idx], tau;
-#                 sampling_rate_factor=10, max_real_time=poisson_time, max_loops=poisson_loops, max_spikes=poisson_spikes,
-#                 exit_status=ST_status[idx], total_time=time_arr)
-#             print("p")
-#             if verbose > 1
-#                 print("[Got $(length(ST_simulated[idx])) spikes in $(time_arr[1]) s]")
-#             end
-#             print("] ")
-#         end
-#
-#         print("\n    Computing simulated STRFs...")
-#         sim_spikes = SpikeTrains(ST_simulated, spikes.I;
-#             comment="Simulated spike train for CRCNS data $mat_file, recording index $rec_idx",
-#             CRCNS_script_version=CRCNS_script_version,
-#             poisson_status=ST_status, poisson_rate=L)
-#         hide_metadata!(sim_spikes, :poisson_status)
-#         hide_metadata!(sim_spikes, :poisson_rate)
-#         sim_hist = histogram(sim_spikes, frame_time(stim); N_bins=n_frames(stim))
-#         sim_STRFs = compute_STRFs(sim_hist, stim)
-#         println("done")
-#         if verbose > 1
-#             println(sim_spikes)
-#         end
-#
-#         indexes = index_set_to_int(sim_spikes.I)
-#         sim_filename = "$(remove_extension(mat_file))-$(rec_idx)_simulated_$indexes.jld"
-#         println("    Writing simulated spike trains and computed STRFs to $(joinpath(output_dir_sim,sim_filename))")
-#         # save(joinpath(output_dir_sim, sim_filename), "CRCNS_script_version", CRCNS_script_version, "timestamp", now(), "STRFs", sim_STRFs, "spikes", sim_spikes)
-#         jldopen(joinpath(output_dir_sim, sim_filename), "w") do file
-#             addrequire(file, Spikes)
-#             addrequire(file, GrayScaleStimuli)
-#             write(file, "CRCNS_script_version", CRCNS_script_version)
-#             write(file, "timestamp", now())
-#             write(file, "STRFs", sim_STRFs)
-#             write(file, "spikes", sim_spikes)
-#         end
-#     end
-# end
+println("$(ts())   Creating databases")
+real_strf_df = new_strf_dataframe()
+sim_strf_df = new_strf_dataframe()
+real_spikes_df = new_spikes_dataframe()
+sim_spikes_df = new_spikes_dataframe()
+println("$(ts())     Populating DataFrames")
+for D in lots_of_dicts
+    append!(real_strf_df, D["real_strf"])
+    append!(sim_strf_df, D["sim_strf"])
+    append!(real_spikes_df, D["real_spikes"])
+    append!(sim_spikes_df, D["sim_spikes"])
+end
+
+println("$(ts())     Saving .csv files")
+save_strf_db(real_strf_df, CRCNS_db_strf_real) # default dir is already analysis dir, woo
+save_strf_db(sim_strf_df, CRCNS_db_strf_sim)
+save_spikes_db(real_spikes_df, CRCNS_db_spikes_real)
+save_spikes_db(sim_spikes_df, CRCNS_db_spikes_sim)
+println("$(ts())       Real STRFs:  $(joinpath(CRCNS_analysis_dir, CRCNS_db_strf_real))")
+println("$(ts())       Sim. STRFs:  $(joinpath(CRCNS_analysis_dir, CRCNS_db_strf_sim))")
+println("$(ts())       Real Spikes: $(joinpath(CRCNS_analysis_dir, CRCNS_db_spikes_real))")
+println("$(ts())       Sim. Spikes: $(joinpath(CRCNS_analysis_dir, CRCNS_db_spikes_sim))")
 
 println("$(ts()) >>> CRCNS_generate_STRFs: END SCRIPT")
-println("-" ^ 80)
+# println("-" ^ 80)
