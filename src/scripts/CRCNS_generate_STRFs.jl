@@ -150,7 +150,7 @@ println("$(ts()) \t$(join(mat_files,"\n$(ts())\t"))")
             rec_idx,
             missing,
             spikes.metadata[:animal],
-            int_to_index_set(1:n_cells(spikes)),
+            index_set_to_int(1:n_cells(spikes)),
             hash(spikes),
             hash(stim)])
 
