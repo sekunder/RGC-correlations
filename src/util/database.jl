@@ -6,19 +6,19 @@
 
 @everywhere using DataFrames, CSV
 
-"""
-    vec2str(v) = join(v, " ")
-
-Used for reading/writing CSV files (transforms vectors in `DataFrame`s)
-"""
+# """
+#     vec2str(v) = join(v, " ")
+#
+# Used for reading/writing CSV files (transforms vectors in `DataFrame`s)
+# """
 @everywhere vec2str(v) = join(v, " ") # jklol this function ends up not being used anywhere
 # vec2str(::Missings.Missing) = missing
 
-"""
-    str2vec(s) = map(parse, split(s, " "))
-
-Used for reading/writing CSV files (transforms strings in CSV files)
-"""
+# """
+#     str2vec(s) = map(parse, split(s, " "))
+#
+# Used for reading/writing CSV files (transforms strings in CSV files)
+# """
 @everywhere str2vec(s) = map(parse, split(replace(s, ['[',',',']'], "")))
 @everywhere str2vec(::Missings.Missing) = missing
 
