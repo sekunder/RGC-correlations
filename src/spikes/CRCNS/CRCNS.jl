@@ -17,5 +17,7 @@ function CRCNS_get_spikes_from_file(filename, rec_idx::Int)
     return SpikeTrains(spikes;
         stim_start=0.0,
         stim_finish=vars["stimulus"]["frame"][rec_idx] * vars["stimulus"]["Nframes"][rec_idx],
-        filename=filename)
+        filename=filename,
+        date=vars["datainfo"]["date"],
+        animal=vars["datainfo"]["animal"])
 end

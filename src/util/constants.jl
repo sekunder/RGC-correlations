@@ -13,6 +13,8 @@
 @everywhere CRCNS_db_prob_sim = "crcns_prob_sim"
 @everywhere CRCNS_db_strf_real = "crcns_strf_real"
 @everywhere CRCNS_db_strf_sim = "crcns_strf_sim"
+@everywhere CRCNS_db_spikes_real = "crcns_spikes_real"
+@everywhere CRCNS_db_spikes_sim = "crcns_spikes_sim"
 
 @everywhere CRCNS_script_version = v"0.4"
 
