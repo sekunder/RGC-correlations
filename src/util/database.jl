@@ -83,7 +83,7 @@ end
             "ori_mat_file"      => String,
             "ori_mat_rec"       => Int,
             "ori_mat_neuron"    => Int,
-            "ori_jld_file"      => String,
+            "ori_jld_file"      => Union{String,Missing},
             "neuron_type"       => String,
             "hash"              => UInt,
             "frame_rate"        => Float64,
@@ -130,7 +130,7 @@ end
         types=Dict(
             "ori_mat_file"  => String,
             "ori_mat_rec"   => Int,
-            "ori_jld_file"  => String,
+            "ori_jld_file"  => Union{String,Missing},
             "neuron_type"   => String,
             "neurons"       => Int,
             "P_1"           => UInt,
@@ -151,7 +151,7 @@ end
             types=Dict(
                 "ori_mat_file"  => String,
                 "ori_mat_rec"   => Int,
-                "ori_jld_file"  => String,
+                "ori_jld_file"  => Union{String,Missing},,
                 "neuron_type"   => String,
                 "neurons"       => Int,
                 "hash"          => UInt,
