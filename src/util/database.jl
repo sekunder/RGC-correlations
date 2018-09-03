@@ -1,6 +1,5 @@
-# STATUS Aug 28: I believe I have all the strf-db-related functions working, so I should be
-# able to get the others up to speed quickly. Then it's time to do the "actual work"
-
+# STATUS August 30: need to run a quick update script to transform the existing prob and
+# spikes databases with an extra column for n_neurons (for convenience)
 
 # functions for dealing with the "databases" I am making
 
@@ -50,6 +49,7 @@ end
         :ori_mat_rec    => [],
         :ori_jld_file   => [],
         :neuron_type    => [],
+        :n_neurons      => [],
         :neurons        => [],
         # due to issues with CSV, this should always be stored as an int. Use
         # int_to_index_set when performing queries and the like.
@@ -69,6 +69,7 @@ end
         :ori_mat_rec    => [],
         :ori_jld_file   => [],
         :neuron_type    => [],
+        :n_neurons      => [],
         :neurons        => [], # see comment in new_prob_dataframe; this'll be an int
         :hash           => [],
         :stimulus       => [],
@@ -132,6 +133,7 @@ end
             "ori_mat_rec"   => Int,
             "ori_jld_file"  => Union{String,Missing},
             "neuron_type"   => String,
+            "n_neurons"     => Int,
             "neurons"       => Int,
             "P_1"           => UInt,
             "P_2"           => UInt,
@@ -153,6 +155,7 @@ end
                 "ori_mat_rec"   => Int,
                 "ori_jld_file"  => Union{String,Missing},
                 "neuron_type"   => String,
+                "n_neurons"     => Int,
                 "neurons"       => Int,
                 "hash"          => UInt,
                 "stimulus"      => Union{UInt, Missing}
