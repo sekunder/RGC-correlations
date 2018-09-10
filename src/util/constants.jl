@@ -9,6 +9,7 @@
 @everywhere CRCNS_information_dir = joinpath(CRCNS_analysis_dir, "information")
 @everywhere CRCNS_plots_dir = joinpath(CRCNS_analysis_dir, "plots")
 
+@everywhere CRCNS_prob_db = "crcns_prob_db"
 @everywhere CRCNS_db_prob_real = "crcns_prob_real"
 @everywhere CRCNS_db_prob_sim = "crcns_prob_sim"
 @everywhere CRCNS_db_strf_real = "crcns_strf_real"
