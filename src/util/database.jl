@@ -20,6 +20,8 @@
 # """
 @everywhere str2vec(s) = map(parse, split(replace(s, ['[',',',']'], "")))
 @everywhere str2vec(::Missings.Missing) = missing
+@everywhere str2mat(s) = vcat(map(str2vec, split(s, ';'))...)
+@everywhere str2mat(::Missings.Missing) = missing
 
 @everywhere function new_strf_dataframe()
     return DataFrame(
@@ -35,6 +37,7 @@
         # easier here by just storing actual vectors.
         :resolution     => [],
         :pixels         => [],
+        :mm_per_px      => [],
         :center         => [],
         :v1             => [], # eigenvectors of covariance matrix
         :v2             => [],
@@ -47,7 +50,7 @@ end
     return DataFrame(
         :ori_mat_file   => [],
         :ori_mat_rec    => [],
-        :ori_jld_file   => [],
+        # :ori_jld_file   => [],
         :neuron_type    => [],
         :n_neurons      => [],
         :neurons        => [],
@@ -102,19 +105,11 @@ end
     # `Vector{X}` columns, which cannot be parsed as `Vector`s directly. So, lets fix that
     # manually.
     types=Dict(
-        # "ori_mat_file"      => String,
-        # "ori_mat_rec"       => Int,
-        # "ori_mat_neuron"    => Int,
-        # "ori_jld_file"      => String,
-        # "neuron_type"       => String,
-        # "hash"              => UInt,
-        # "frame_rate"        => Float64,
         "resolution"        => Vector{Int},
         "pixels"            => Vector{Int},
         "center"            => Vector{Float64},
         "v1"                => Vector{Float64},
         "v2"                => Vector{Float64},
-        # "estimation_params" => String
         )
     for (k,t) in zip(names(df), eltypes(df))
         if t == Missing
