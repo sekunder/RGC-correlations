@@ -26,8 +26,8 @@ end
 ################################################################################
 
 println("$(ts()) Loading spikes databases")
-dfspikes_real = load_strf_db(CRCNS_db_spikes_real)
-dfspikes_sim = load_strf_db(CRCNS_db_spikes_sim)
+dfspikes_real = load_spikes_db(CRCNS_db_spikes_real)
+dfspikes_sim = load_spikes_db(CRCNS_db_spikes_sim)
 
 spikes_real = selectcols_rename(dfspikes_real,
     drop=[:ori_jld_file, :neurons, :stimulus, :n_neurons],
