@@ -175,3 +175,16 @@ end
 # """
 # function estimate_RF(strf::GrayScaleStimulus)
 # end
+
+
+for r in eachrow(dfstrf_real)
+    rf = loadstimulus(r[:hash])
+    r[:mm_per_px] = rf.mm_per_px
+    C,S = CRCNS_strf_stats(rf)
+    if !ismissing(S)
+        va,ve = eig(S)
+        r[:center] = C
+        r[:v1] = va[1] * ve[:,1]
+        r[:v2] = va[2] * ve[:,2]
+    end
+end
