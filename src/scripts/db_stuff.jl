@@ -1,11 +1,11 @@
-using PyPlot
+# using PyPlot
 
 include("../util/init.jl")
 
 # lfname = joinpath(homedir(), "julia", basename(@__FILE__) * ".log")
 # lf = open(lfname, "a")
 
-raster_bin_size = 0.020
+@everywhere raster_bin_size = 0.020
 
 """
     selectcols_rename(df; keep=names(df), drop=[], name=Dict())
@@ -46,7 +46,7 @@ smaller_spikes = selectcols_rename(spikes_db, drop=[:neuron_type,:n_neurons], na
 ################################################################################
 ### STRF database stuff
 ################################################################################
-println("$(ts()) Loading STRF databases")
+println("$(ts()) Loading STRF database")
 dfstrf_real = load_strf_db(CRCNS_db_strf_real)
 dfstrf_sim = load_strf_db(CRCNS_db_strf_sim)
 
@@ -75,31 +75,12 @@ end
 println("$(ts()) Saving combined strf db with added columns to $(joinpath(CRCNS_analysis_dir,CRCNS_db_strf)).csv")
 save_strf_db(strf_db, CRCNS_db_strf)
 
-# sdiffs = zeros(0); cdiffs=zeros(0);
-# for r in eachrow(strf_db[:, [:s_diff, :c_diff]])
-#     if !(ismissing(r[:s_diff]) || ismissing(r[:c_diff]))
-#         push!(sdiffs, r[:s_diff])
-#         push!(cdiffs, r[:c_diff])
-#     end
-# end
-# scatter(sdiffs, cdiffs)
-
-# rf_diffs = rename!(by(strf_db,
-#     [:ori_mat_file, :ori_mat_rec],
-#     df -> [mean(skipmissing(df[:s_diff])) mean(skipmissing(df[:c_diff]))]
-#     ), :x1=>:mean_sdiff, :x2=>:mean_cdiff)
-
-for subdf in groupby(master_db, [:ori_mat_file, :ori_mat_rec])
-    println("Attempting to select the top 5 things...")
-    println(select(1:size(subdf,1), 1:5, by=(i -> subdf[i, :s_diff])))
-    # this totally works.
-end
-
-master_db = join(strf_db, smaller_spikes, on=[:ori_mat_file, :ori_mat_rec])
+@everywhere master_db = join(strf_db, smaller_spikes, on=[:ori_mat_file, :ori_mat_rec])
 
 @everywhere function proc_subdf(subdf)
     global raster_bin_size
     lf = open(joinpath(homedir(), "julia", "db_stuff.$(myid()).log"), "a")
+    # lf = STDOUT
     prob_db = new_prob_dataframe()
     mf = subdf[1,:ori_mat_file]; mr = subdf[1,:ori_mat_rec]; N_neurons = size(subdf,1)
     println(lf, "$(ts()) Looking at data file $mf, recording $mr. Found $N_neurons neurons.")
@@ -109,23 +90,24 @@ master_db = join(strf_db, smaller_spikes, on=[:ori_mat_file, :ori_mat_rec])
     # println()
 
     if size(subdf, 1) >= 10
-        _df = DataFrame(subdf[:,:])
+        # _df = DataFrame(subdf[:,:])
         # if there's at least 10 neurons to work with, let's pull up the spikes for that
         # file/rec, and start fitting things to the 10 "best" neurons, then 11, and so on up
         # to 20.
         println(lf, "$(ts()) Preparing to fit just a whole mess of probability distributions and compute their entropies")
         println(lf, "$(ts()) Rasterizing spike trains with bin size $(raster_bin_size*1000) ms")
-        X_real = raster(loadspikes(_df[1,:real_spikes_hash]), raster_bin_size)
-        X_sim = raster(loadspikes(_df[1, :sim_spikes_hash]), raster_bin_size)
+        X_real = raster(loadspikes(subdf[1,:real_spikes_hash]), raster_bin_size)
+        X_sim = raster(loadspikes(subdf[1, :sim_spikes_hash]), raster_bin_size)
         # println("Since ")
 
-        sort!(_df, [:s_diff])
+        # sort!(_df, [:s_diff])
+        # if I use select, I shouldn't need to create a dataframe object for sorting
         for N = 10:min(20, N_neurons)
-            neurons = sort(_df[1:N, :ori_mat_neuron])
+            # neurons = sort(_df[1:N, :ori_mat_neuron])
+            neurons = sort(select(1:N_neurons, 1:N, by=(i->subdf[i, :s_diff])))
             println(lf, "$(ts())   Using the $N neurons with lowest STRF difference")
             println(lf, "$(ts())   neurons: $neurons")
-            # println("Testing: Would try to fit on neurons $neurons")
-            for (nt,X) in zip([_df[1,:neuron_type],"simulated"], [X_real, X_sim])
+            for (nt,X) in zip([subdf[1,:neuron_type],"simulated"], [X_real, X_sim])
                 P_1 = first_order_model(X, neurons)
                 H_1 = entropy2(P_1); savedistribution(P_1)
                 println(lf, "$(ts())     $nt\tP_1: $(hash(P_1))")
@@ -156,7 +138,11 @@ end
 
 println("$(ts()) Beginning parallel processing on $(nprocs()) available workers...")
 
-lots_of_tables = pmap(proc_subdf, groupby(strf_db, [:ori_mat_file, :ori_mat_rec]))
+lots_of_tables = pmap(proc_subdf, groupby(master_db, [:ori_mat_file, :ori_mat_rec]))
+# for subdf in groupby(master_db, [:ori_mat_file, :ori_mat_rec])
+#     proc_subdf(subdf)
+# end
+
 prob_db = new_prob_dataframe()
 for t in lots_of_tables
     append!(prob_db, t)
