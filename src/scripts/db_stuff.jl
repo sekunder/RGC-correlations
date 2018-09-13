@@ -38,6 +38,10 @@ spikes_sim = selectcols_rename(dfspikes_sim,
     name=Dict(:hash=>:hash_sim))
 
 spikes_db = join(spikes_real, spikes_sim, on=[:ori_mat_file, :ori_mat_rec])
+println("$(ts()) Saving combined spikes db to $(joinpath(CRCNS_analysis_dir, CRCNS_db_spikes)).csv")
+save_spikes_db(spikes_db, CRCNS_db_spikes)
+
+smaller_spikes = selectcols_rename(spikes_db, drop=[:neuron_type,:n_neurons], name=Dict(:hash_real=>:real_spikes_hash,:hash_sim=>:sim_spikes_hash))
 
 ################################################################################
 ### STRF database stuff
@@ -68,7 +72,7 @@ for r in eachrow(strf_db)
     r[:c_diff] = (ismissing(r[:center_real]) || ismissing(r[:center_sim])) ? missing : norm(r[:center_real] - r[:center_sim])
 end
 
-println("$(ts()) Saving strf db with added columns to $(joinpath(CRCNS_analysis_dir,CRCNS_db_strf))")
+println("$(ts()) Saving combined strf db with added columns to $(joinpath(CRCNS_analysis_dir,CRCNS_db_strf)).csv")
 save_strf_db(strf_db, CRCNS_db_strf)
 
 # sdiffs = zeros(0); cdiffs=zeros(0);
@@ -85,8 +89,16 @@ save_strf_db(strf_db, CRCNS_db_strf)
 #     df -> [mean(skipmissing(df[:s_diff])) mean(skipmissing(df[:c_diff]))]
 #     ), :x1=>:mean_sdiff, :x2=>:mean_cdiff)
 
+for subdf in groupby(master_db, [:ori_mat_file, :ori_mat_rec])
+    println("Attempting to select the top 5 things...")
+    println(select(1:size(subdf,1), 1:5, by=(i -> subdf[i, :s_diff])))
+    # this totally works.
+end
+
+master_db = join(strf_db, smaller_spikes, on=[:ori_mat_file, :ori_mat_rec])
 
 @everywhere function proc_subdf(subdf)
+    global raster_bin_size
     lf = open(joinpath(homedir(), "julia", "db_stuff.$(myid()).log"), "a")
     prob_db = new_prob_dataframe()
     mf = subdf[1,:ori_mat_file]; mr = subdf[1,:ori_mat_rec]; N_neurons = size(subdf,1)
@@ -101,12 +113,10 @@ save_strf_db(strf_db, CRCNS_db_strf)
         # if there's at least 10 neurons to work with, let's pull up the spikes for that
         # file/rec, and start fitting things to the 10 "best" neurons, then 11, and so on up
         # to 20.
-        sp_idx = find((spikes_db[:ori_mat_file] .== mf) .& (spikes_db[:ori_mat_rec] .== mr))[1]
-        # println("using this row from spikes_db:")
-        # println(spikes_db[sp_idx, :])
         println(lf, "$(ts()) Preparing to fit just a whole mess of probability distributions and compute their entropies")
-        X_real = raster(loadspikes(spikes_db[sp_idx, :hash_real]), raster_bin_size)
-        X_sim = raster(loadspikes(spikes_db[sp_idx, :hash_sim]), raster_bin_size)
+        println(lf, "$(ts()) Rasterizing spike trains with bin size $(raster_bin_size*1000) ms")
+        X_real = raster(loadspikes(_df[1,:real_spikes_hash]), raster_bin_size)
+        X_sim = raster(loadspikes(_df[1, :sim_spikes_hash]), raster_bin_size)
         # println("Since ")
 
         sort!(_df, [:s_diff])
@@ -150,6 +160,7 @@ lots_of_tables = pmap(proc_subdf, groupby(strf_db, [:ori_mat_file, :ori_mat_rec]
 prob_db = new_prob_dataframe()
 for t in lots_of_tables
     append!(prob_db, t)
+end
 
 println("$(ts()) Saving probability distributions database")
 save_prob_db(prob_db, CRCNS_db_prob)
