@@ -68,6 +68,9 @@ for r in eachrow(strf_db)
     r[:c_diff] = (ismissing(r[:center_real]) || ismissing(r[:center_sim])) ? missing : norm(r[:center_real] - r[:center_sim])
 end
 
+println("$(ts()) Saving strf db with added columns to $(joinpath(CRCNS_analysis_dir,CRCNS_db_strf))")
+save_strf_db(strf_db, CRCNS_db_strf)
+
 # sdiffs = zeros(0); cdiffs=zeros(0);
 # for r in eachrow(strf_db[:, [:s_diff, :c_diff]])
 #     if !(ismissing(r[:s_diff]) || ismissing(r[:c_diff]))
@@ -83,11 +86,11 @@ end
 #     ), :x1=>:mean_sdiff, :x2=>:mean_cdiff)
 
 
-prob_db = new_prob_dataframe()
-
-for subdf in groupby(strf_db, [:ori_mat_file, :ori_mat_rec])
+@everywhere function proc_subdf(subdf)
+    lf = open(joinpath(homedir(), "julia", basename(@__FILE__) * ".$(myid()).log"))
+    prob_db = new_prob_dataframe()
     mf = subdf[1,:ori_mat_file]; mr = subdf[1,:ori_mat_rec]; N_neurons = size(subdf,1)
-    println("$(ts()) Looking at data file $mf, recording $mr. Found $N_neurons neurons.")
+    println(lf, "$(ts()) Looking at data file $mf, recording $mr. Found $N_neurons neurons.")
     # println(describe(subdf[:,[:c_diff,:s_diff]]))
     # println("var_cdiff: $(var(skipmissing(subdf[:c_diff])))")
     # println("var_sdiff: $(var(skipmissing(subdf[:s_diff])))")
@@ -101,27 +104,27 @@ for subdf in groupby(strf_db, [:ori_mat_file, :ori_mat_rec])
         sp_idx = find((spikes_db[:ori_mat_file] .== mf) .& (spikes_db[:ori_mat_rec] .== mr))[1]
         # println("using this row from spikes_db:")
         # println(spikes_db[sp_idx, :])
-        println("$(ts()) Preparing to fit just a whole mess of probability distributions")
+        println(lf, "$(ts()) Preparing to fit just a whole mess of probability distributions and compute their entropies")
         X_real = raster(loadspikes(spikes_db[sp_idx, :hash_real]), raster_bin_size)
         X_sim = raster(loadspikes(spikes_db[sp_idx, :hash_sim]), raster_bin_size)
         # println("Since ")
 
         sort!(_df, [:s_diff])
         for N = 10:min(20, N_neurons)
-            neurons = sort(subdf[1:N, :ori_mat_neuron])
-            println("$(ts())   Using the $N neurons with lowest STRF difference")
-            println("$(ts())   neurons: $neurons")
+            neurons = sort(_df[1:N, :ori_mat_neuron])
+            println(lf, "$(ts())   Using the $N neurons with lowest STRF difference")
+            println(lf, "$(ts())   neurons: $neurons")
             # println("Testing: Would try to fit on neurons $neurons")
             for (nt,X) in zip([_df[1,:neuron_type],"simulated"], [X_real, X_sim])
-                P_1 = first_order_model(X, neurons); savedistribution(P_1)
-                println("$(ts())     $nt\tP_1: $(hash(P_1))")
-                P_2 = second_order_model(X, neurons); savedistribution(P_2)
-                println("$(ts())     $nt\tP_2: $(hash(P_2))")
-                P_N = data_model(X, neurons); savedistribution(P_N)
-                println("$(ts())     $nt\tP_N: $(hash(P_N))")
-                H_1 = entropy2(P_1)
-                H_2 = entropy2(P_2)
-                H_N = entropy2(P_N)
+                P_1 = first_order_model(X, neurons)
+                H_1 = entropy2(P_1); savedistribution(P_1)
+                println(lf, "$(ts())     $nt\tP_1: $(hash(P_1))")
+                P_2 = second_order_model(X, neurons)
+                H_2 = entropy2(P_2); savedistribution(P_2)
+                println(lf, "$(ts())     $nt\tP_2: $(hash(P_2))")
+                P_N = data_model(X, neurons)
+                H_N = entropy2(P_N); savedistribution(P_N)
+                println(lf, "$(ts())     $nt\tP_N: $(hash(P_N))")
                 push!(prob_db,
                     [mf,
                     mr,
@@ -137,7 +140,16 @@ for subdf in groupby(strf_db, [:ori_mat_file, :ori_mat_rec])
             end
         end
     end
+    close(lf)
+    return prob_db
 end
+
+println("$(ts()) Beginning parallel processing on $(nprocs()) available workers...")
+
+lots_of_tables = pmap(proc_subdf, groupby(strf_db, [:ori_mat_file, :ori_mat_rec]))
+prob_db = new_prob_dataframe()
+for t in lots_of_tables
+    append!(prob_db, t)
 
 println("$(ts()) Saving probability distributions database")
 save_prob_db(prob_db, CRCNS_db_prob)
