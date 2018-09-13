@@ -87,7 +87,7 @@ save_strf_db(strf_db, CRCNS_db_strf)
 
 
 @everywhere function proc_subdf(subdf)
-    lf = open(joinpath(homedir(), "julia", basename(@__FILE__) * ".$(myid()).log"))
+    lf = open(joinpath(homedir(), "julia", "db_stuff.$(myid()).log"), "a")
     prob_db = new_prob_dataframe()
     mf = subdf[1,:ori_mat_file]; mr = subdf[1,:ori_mat_rec]; N_neurons = size(subdf,1)
     println(lf, "$(ts()) Looking at data file $mf, recording $mr. Found $N_neurons neurons.")
