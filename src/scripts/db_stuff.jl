@@ -75,7 +75,7 @@ end
 println("$(ts()) Saving combined strf db with added columns to $(joinpath(CRCNS_analysis_dir,CRCNS_db_strf)).csv")
 save_strf_db(strf_db, CRCNS_db_strf)
 
-@everywhere master_db = join(strf_db, smaller_spikes, on=[:ori_mat_file, :ori_mat_rec])
+master_db = join(strf_db, smaller_spikes, on=[:ori_mat_file, :ori_mat_rec])
 
 @everywhere function proc_subdf(subdf)
     global raster_bin_size
@@ -108,13 +108,13 @@ save_strf_db(strf_db, CRCNS_db_strf)
             println(lf, "$(ts())   Using the $N neurons with lowest STRF difference")
             println(lf, "$(ts())   neurons: $neurons")
             for (nt,X) in zip([subdf[1,:neuron_type],"simulated"], [X_real, X_sim])
-                P_1 = first_order_model(X, neurons)
+                P_1 = first_order_model(X, neurons, verbose=2)
                 H_1 = entropy2(P_1); savedistribution(P_1)
                 println(lf, "$(ts())     $nt\tP_1: $(hash(P_1))")
-                P_2 = second_order_model(X, neurons)
+                P_2 = second_order_model(X, neurons, verbose=2)
                 H_2 = entropy2(P_2); savedistribution(P_2)
                 println(lf, "$(ts())     $nt\tP_2: $(hash(P_2))")
-                P_N = data_model(X, neurons)
+                P_N = data_model(X, neurons, verbose=2)
                 H_N = entropy2(P_N); savedistribution(P_N)
                 println(lf, "$(ts())     $nt\tP_N: $(hash(P_N))")
                 push!(prob_db,
