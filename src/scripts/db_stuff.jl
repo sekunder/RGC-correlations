@@ -6,6 +6,7 @@ include("../util/init.jl")
 # lf = open(lfname, "a")
 
 @everywhere raster_bin_size = 0.020
+using CSV
 
 """
     selectcols_rename(df; keep=names(df), drop=[], name=Dict())

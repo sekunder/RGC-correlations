@@ -3,7 +3,8 @@
 
 # functions for dealing with the "databases" I am making
 
-@everywhere using DataFrames, CSV
+@everywhere using DataFrames
+
 
 # """
 #     vec2str(v) = join(v, " ")
