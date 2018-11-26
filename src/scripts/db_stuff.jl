@@ -110,13 +110,14 @@ master_db = join(strf_db, smaller_spikes, on=[:ori_mat_file, :ori_mat_rec])
             for (nt,X) in zip([subdf[1,:neuron_type],"simulated"], [X_real, X_sim])
                 P_1 = first_order_model(X, neurons, verbose=2)
                 H_1 = entropy2(P_1); savedistribution(P_1)
-                println(lf, "$(ts())     $nt\tP_1: $(hash(P_1))")
+                println(lf, "$(ts())     $nt\tP_1: $(hash(P_1))\tH_1: $H_1")
                 P_2 = second_order_model(X, neurons, verbose=2)
                 H_2 = entropy2(P_2); savedistribution(P_2)
-                println(lf, "$(ts())     $nt\tP_2: $(hash(P_2))")
+                println(lf, "$(ts())     $nt\tP_2: $(hash(P_2))\tH_2: $H_2")
                 P_N = data_model(X, neurons, verbose=2)
                 H_N = entropy2(P_N); savedistribution(P_N)
-                println(lf, "$(ts())     $nt\tP_N: $(hash(P_N))")
+                println(lf, "$(ts())     $nt\tP_N: $(hash(P_N))\tH_N: $H_N")
+                println(lf, "$(ts())   pushing to temporary dataframe")
                 push!(prob_db,
                     [mf,
                     mr,
@@ -132,6 +133,7 @@ master_db = join(strf_db, smaller_spikes, on=[:ori_mat_file, :ori_mat_rec])
             end
         end
     end
+    println(lf, "$(ts()) Finished with file $mf, recording $mr")
     close(lf)
     return prob_db
 end
@@ -143,12 +145,13 @@ lots_of_tables = pmap(proc_subdf, groupby(master_db, [:ori_mat_file, :ori_mat_re
 #     proc_subdf(subdf)
 # end
 
+println("$(ts()) Finished parallel processing. Collating data...")
 prob_db = new_prob_dataframe()
 for t in lots_of_tables
     append!(prob_db, t)
 end
 
-println("$(ts()) Saving probability distributions database")
+println("$(ts()) Saving probability distributions database to $(joinpath(CRCNS_analysis_dir,CRCNS_db_prob))")
 save_prob_db(prob_db, CRCNS_db_prob)
 
 ################################################################################
