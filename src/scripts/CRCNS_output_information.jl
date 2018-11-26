@@ -1,11 +1,11 @@
 help_string = """
-$(@__FILE__)
+$(basename(@__FILE__))
 
 Fits probability models to subsamples of real and simulated data, then writes
 these models to .jld files.
 
 Usage:
-  [julia] $(@__FILE__) --defaults | --dir sim_jld_dir | file1 file2 ... [options]
+  [julia] $(basename(@__FILE__)) --defaults | --dir sim_jld_dir | file1 file2 ... [options]
   Processes files specified by opening flags/files list:
     --defaults : Attempts to process every .jld file in the "sim" directory under `CRCNS_STRF_dir`
     --dir sim_jld_dir : Attempts to process every .jld file in `sim_jld_dir`

@@ -176,6 +176,32 @@ end
 # function estimate_RF(strf::GrayScaleStimulus)
 # end
 
+"""
+    CRCNS_strf_stats(rf; zscore=3)
+
+Fit a 2d guassian to the "variance image" of the given STRF. That is, first reduce the
+temporal dimension by variance, then set everything that is less than `zscore` deviations
+away from the mean to 0. Fit a gaussian to the resulting full image (i.e., the image is
+scaled up to `frame_size(rf)`). Returns the center and covariance matrix of the resulting
+gaussian in "pixel space."
+
+If none of the pixels vary enough, returns `missing, missing`.
+
+"""
+function CRCNS_strf_stats(rf::GrayScaleStimulus; zscore=3)
+    M = matrix_form(rf)
+    V = var(M, 2)
+    Z = (V - mean(V)) / sqrt(var(V))
+    V[abs.(Z) .< zscore] = 0.0
+    if all(V .== 0)
+        return missing, missing
+    end
+    img = kron(reshape(V, resolution(rf)...), ones(patch_size(rf)...))
+    C = imagemean(img)
+    Σ = matrixcovariance(img)
+    return C,Σ
+end
+
 
 for r in eachrow(dfstrf_real)
     rf = loadstimulus(r[:hash])
