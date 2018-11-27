@@ -139,9 +139,10 @@ master_db = join(strf_db, smaller_spikes, on=[:ori_mat_file, :ori_mat_rec])
     return prob_db
 end
 
-println("$(ts()) Beginning parallel processing on $(nprocs()) available workers...")
+# println("$(ts()) Beginning parallel processing on $(nprocs()) available workers...")
+println("$(ts()) Beginning serial processing...")
 
-lots_of_tables = pmap(proc_subdf, groupby(master_db, [:ori_mat_file, :ori_mat_rec]))
+lots_of_tables = map(proc_subdf, groupby(master_db, [:ori_mat_file, :ori_mat_rec]))
 # for subdf in groupby(master_db, [:ori_mat_file, :ori_mat_rec])
 #     proc_subdf(subdf)
 # end
