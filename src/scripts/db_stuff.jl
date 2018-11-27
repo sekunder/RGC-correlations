@@ -97,8 +97,8 @@ master_db = join(strf_db, smaller_spikes, on=[:ori_mat_file, :ori_mat_rec])
         # to 20.
         println(lf, "$(ts()) Preparing to fit just a whole mess of probability distributions and compute their entropies")
         println(lf, "$(ts()) Rasterizing spike trains with bin size $(raster_bin_size*1000) ms")
-        X_real = raster(loadspikes(subdf[1,:real_spikes_hash]), raster_bin_size)
-        X_sim = raster(loadspikes(subdf[1, :sim_spikes_hash]), raster_bin_size)
+        X_real = transpose(raster(loadspikes(subdf[1,:real_spikes_hash]), raster_bin_size))
+        X_sim = transpose(raster(loadspikes(subdf[1, :sim_spikes_hash]), raster_bin_size))
         # println("Since ")
 
         # sort!(_df, [:s_diff])
