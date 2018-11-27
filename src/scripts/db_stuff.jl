@@ -142,16 +142,20 @@ end
 # println("$(ts()) Beginning parallel processing on $(nprocs()) available workers...")
 println("$(ts()) Beginning serial processing...")
 
-lots_of_tables = collect(map(proc_subdf, groupby(master_db, [:ori_mat_file, :ori_mat_rec])))
-# for subdf in groupby(master_db, [:ori_mat_file, :ori_mat_rec])
-#     proc_subdf(subdf)
-# end
-
-println("$(ts()) Finished parallel processing. Collating data...")
+# lots_of_tables = pmap(proc_subdf, groupby(master_db, [:ori_mat_file, :ori_mat_rec]))
 prob_db = new_prob_dataframe()
-for t in lots_of_tables
-    append!(prob_db, t)
+for subdf in groupby(master_db, [:ori_mat_file, :ori_mat_rec])
+    sd = proc_subdf(subdf)
+    println("$(ts()) > Appending table")
+    append!(prob_db, sd)
 end
+println("$(ts()) Finished processing")
+
+# println("$(ts()) Finished parallel processing. Collating data...")
+# prob_db = new_prob_dataframe()
+# for t in lots_of_tables
+#     append!(prob_db, t)
+# end
 
 println("$(ts()) Saving probability distributions database to $(joinpath(CRCNS_analysis_dir,CRCNS_db_prob))")
 save_prob_db(prob_db, CRCNS_db_prob)
