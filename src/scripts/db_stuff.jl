@@ -80,6 +80,7 @@ master_db = join(strf_db, smaller_spikes, on=[:ori_mat_file, :ori_mat_rec])
 
 @everywhere function proc_subdf(subdf)
     global raster_bin_size
+    println("$(ts()) Worker $(myid()) beginning processing, writing to db_stuff.$(myid()).log")
     lf = open(joinpath(homedir(), "julia", "db_stuff.$(myid()).log"), "a")
     # lf = STDOUT
     prob_db = new_prob_dataframe()
@@ -112,7 +113,7 @@ master_db = join(strf_db, smaller_spikes, on=[:ori_mat_file, :ori_mat_rec])
                 P_1 = first_order_model(X, neurons, verbose=2)
                 H_1 = entropy2(P_1); savedistribution(P_1)
                 println(lf, "$(ts())     $nt\tP_1: $(hash(P_1))\tH_1: $H_1")
-                P_2 = second_order_model(X, neurons, verbose=1, allow_f_increases=true)
+                P_2 = second_order_model(X, neurons, verbose=2)
                 H_2 = entropy2(P_2); savedistribution(P_2)
                 println(lf, "$(ts())     $nt\tP_2: $(hash(P_2))\tH_2: $H_2 $(P_2.metadata[:minimizer_converged] ? "*" : "! minimizer did not converge!")")
                 P_N = data_model(X, neurons, verbose=2)
