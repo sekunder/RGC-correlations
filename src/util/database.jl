@@ -127,7 +127,6 @@ end
         types=Dict(
             "ori_mat_file"  => String,
             "ori_mat_rec"   => Int,
-            "ori_jld_file"  => Union{String,Missing},
             "neuron_type"   => String,
             "n_neurons"     => Int,
             "neurons"       => Int,
