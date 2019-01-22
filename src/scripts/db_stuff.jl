@@ -27,7 +27,7 @@ end
 
 Returns a vector of entries on all the positive diagonals of matrix `A`
 """
-offdiagentries(A) = vcat([diag(A,k) for k=1:size(A,1)])
+offdiagentries(A) = vcat([diag(A,k) for k=1:size(A,1)]...)
 
 ################################################################################
 ### Spikes database stuff
@@ -87,7 +87,7 @@ master_db = join(strf_db, smaller_spikes, on=[:ori_mat_file, :ori_mat_rec])
 
 @everywhere function proc_subdf(subdf)
     global raster_bin_size
-    println("$(ts()) Worker $(myid()) beginning processing, writing to db_stuff.$(myid()).log")
+    println("$(ts()) > Worker $(myid()) beginning processing, writing to db_stuff.$(myid()).log")
     lf = open(joinpath(homedir(), "julia", "db_stuff.$(myid()).log"), "a")
     # lf = STDOUT
     prob_db = new_prob_dataframe()
