@@ -130,13 +130,26 @@ master_db = join(strf_db, smaller_spikes, on=[:ori_mat_file, :ori_mat_rec])
                 println(lf, "$(ts())     min/max bit moment:  $(extrema(diag(mu_N)))")
                 println(lf, "$(ts())     min/max pair moment: $(extrema(offdiagentries(mu_N)))")
 
+                println(lf, "$(ts())     Fitting P_1. This should go off without a hitch.")
                 P_1 = first_order_model(X, neurons, verbose=2)
                 H_1 = entropy2(P_1); savedistribution(P_1)
-                println(lf, "$(ts())     $nt\tP_1: $(hash(P_1))\tH_1: $H_1")
-                P_2 = second_order_model(X, neurons, verbose=2, algorithm=LBFGS(m=30))
+
+                println(lf, "$(ts())     Fitting P_2.")
+                println(lf, "$(ts())       First, attempting MLE, using LBFGS(m=30)")
+                P_2 = second_order_model(X, neurons, verbose=2, algorithm=LBFGS(m=30), show_every=5)
+                if !P_2.metadata[:MLE_converged]
+                    println(lf, "$(ts())     ! First attempt failed")
+                    println(lf, "$(ts())       Second attempt. Picking up where first attempt left off, allowing f increase")
+                    P_2 = second_order_model(X, neurons, verbose=2, algorith=LBFGS(m=30), allow_f_increases=false, J0=P_2.J, show_every=5)
+                end
+                if !P_2.metadata[:MLE_converged]
+                    println(lf, "$(ts())     ! Second attempt failed. Distribution may be unreliable.")
+                end
                 H_2 = entropy2(P_2); savedistribution(P_2)
-                println(lf, "$(ts())     $nt\tP_2: $(hash(P_2))\tH_2: $H_2 $(P_2.metadata[:minimizer_converged] ? "*" : "!!!")")
                 H_N = entropy2(P_N); savedistribution(P_N)
+
+                println(lf, "$(ts())     $nt\tP_1: $(hash(P_1))\tH_1: $H_1")
+                println(lf, "$(ts())     $nt\tP_2: $(hash(P_2))\tH_2: $H_2 $(P_2.metadata[:MLE_converged] ? "*" : "!!!")")
                 println(lf, "$(ts())     $nt\tP_N: $(hash(P_N))\tH_N: $H_N")
                 I_2 = (H_1 - H_2) / (H_1 - H_N)
                 println(lf, "$(ts())     I_2 = $I_2 $(0 < I_2 < 1 ? "" : "!!!")")
