@@ -55,33 +55,35 @@ smaller_spikes = selectcols_rename(spikes_db, drop=[:neuron_type,:n_neurons], na
 ### STRF database stuff
 ################################################################################
 println("$(ts()) Loading STRF database")
-dfstrf_real = load_strf_db(CRCNS_db_strf_real)
-dfstrf_sim = load_strf_db(CRCNS_db_strf_sim)
+# dfstrf_real = load_strf_db(CRCNS_db_strf_real)
+# dfstrf_sim = load_strf_db(CRCNS_db_strf_sim)
+#
+# # names(dfstrf_real)
+#
+# strfs_real = selectcols_rename(dfstrf_real,
+#     drop=[:ori_jld_file, :frame_rate, :resolution, :pixels, :mm_per_px],
+#     name=Dict(:hash=>:hash_real, :center=>:center_real, :v1=>:v1_real, :v2=>:v2_real))
+#
+# strfs_sim = selectcols_rename(dfstrf_sim,
+#     drop=[:ori_jld_file, :neuron_type],
+#     name=Dict(:hash=>:hash_sim, :center=>:center_sim, :v1=>:v1_sim, :v2=>:v2_sim))
+#
+# strf_db = join(strfs_real, strfs_sim, on=[:ori_mat_file,:ori_mat_rec,:ori_mat_neuron])
+#
+# strf_db[:c_diff] = missings(Float64, size(strf_db,1)); strf_db[:s_diff] = missings(Float64, size(strf_db,1));
+#
+# println("$(ts()) Computing STRF differences")
+# for r in eachrow(strf_db)
+#     rf_real = loadstimulus(r[:hash_real])
+#     rf_sim = loadstimulus(r[:hash_sim])
+#     r[:s_diff] = norm(matrix_form(rf_real) - matrix_form(rf_sim))
+#     r[:c_diff] = (ismissing(r[:center_real]) || ismissing(r[:center_sim])) ? missing : norm(r[:center_real] - r[:center_sim])
+# end
+#
+# println("$(ts()) Saving combined strf db with added columns to $(joinpath(CRCNS_analysis_dir,CRCNS_db_strf)).csv")
+# save_strf_db(strf_db, CRCNS_db_strf)
 
-# names(dfstrf_real)
-
-strfs_real = selectcols_rename(dfstrf_real,
-    drop=[:ori_jld_file, :frame_rate, :resolution, :pixels, :mm_per_px],
-    name=Dict(:hash=>:hash_real, :center=>:center_real, :v1=>:v1_real, :v2=>:v2_real))
-
-strfs_sim = selectcols_rename(dfstrf_sim,
-    drop=[:ori_jld_file, :neuron_type],
-    name=Dict(:hash=>:hash_sim, :center=>:center_sim, :v1=>:v1_sim, :v2=>:v2_sim))
-
-strf_db = join(strfs_real, strfs_sim, on=[:ori_mat_file,:ori_mat_rec,:ori_mat_neuron])
-
-strf_db[:c_diff] = missings(Float64, size(strf_db,1)); strf_db[:s_diff] = missings(Float64, size(strf_db,1));
-
-println("$(ts()) Computing STRF differences")
-for r in eachrow(strf_db)
-    rf_real = loadstimulus(r[:hash_real])
-    rf_sim = loadstimulus(r[:hash_sim])
-    r[:s_diff] = norm(matrix_form(rf_real) - matrix_form(rf_sim))
-    r[:c_diff] = (ismissing(r[:center_real]) || ismissing(r[:center_sim])) ? missing : norm(r[:center_real] - r[:center_sim])
-end
-
-println("$(ts()) Saving combined strf db with added columns to $(joinpath(CRCNS_analysis_dir,CRCNS_db_strf)).csv")
-save_strf_db(strf_db, CRCNS_db_strf)
+strf_db = load_strf_db(CRCNS_db_strf)
 
 master_db = join(strf_db, smaller_spikes, on=[:ori_mat_file, :ori_mat_rec])
 
