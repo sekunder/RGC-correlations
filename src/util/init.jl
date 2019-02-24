@@ -1,6 +1,9 @@
 
 # These inclusions/etc. go at the start of every script I write, basically, so
 # I'm just putting them in one place
+if VERSION >= v"0.7"
+    using Distributed
+end
 
 # include("../probability/probability.jl")
 # include("../spikes/spikes.jl")
@@ -22,7 +25,7 @@ for (pkg_name, pkg_url) in unregistered_packages
     end
     # Pkg.update(pkg_name)
 end
-@everywhere using BinaryVectorProbability, Spikes, GrayScaleStimuli, PrettyLogging
+@everywhere using BinaryVectorProbability, Spikes, GrayScaleStimuli #, PrettyLogging
 
 @everywhere include("../util/constants.jl")
 @everywhere include("../util/misc.jl")
