@@ -19,7 +19,7 @@
 #
 # Used for reading/writing CSV files (transforms strings in CSV files)
 # """
-@everywhere str2vec(s) = map(parse, split(replace(s, ['[',',',']'], "")))
+@everywhere str2vec(s) = map(parse, split(replace(s, ['[',',',']']=>"")))
 @everywhere str2vec(::Missings.Missing) = missing
 @everywhere str2mat(s) = vcat(map(str2vec, split(s, ';'))...)
 @everywhere str2mat(::Missings.Missing) = missing
